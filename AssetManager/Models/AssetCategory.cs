@@ -9,9 +9,9 @@ namespace AssetManager.Models
         public int CategoryId { get; set; }
         public Asset Asset { get; set; }
         public Category Category { get; set; }
-        public string UserId { get; set; }
 
-        [ForeignKey("UserId")]
+        [ForeignKey("User")]
+        public string UserId { get; set; }
         public IdentityUser User { get; set; }
 
     }

@@ -1,11 +1,9 @@
 using AssetManager.Interfaces;
 using AssetManager.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using Microsoft.IdentityModel.Tokens;
 using AssetManager.DTO;
-using AssetManager.Repository;
 
 namespace AssetManager.Controllers
 {

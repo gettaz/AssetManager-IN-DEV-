@@ -26,6 +26,10 @@ namespace AssetManager.Repository
             {
                 return false;
             }
+            foreach (var ac in category.AssetCategories)
+            {
+                _context.AssetsCategories.Remove(ac);
+            }
 
             _context.Remove(category);
 

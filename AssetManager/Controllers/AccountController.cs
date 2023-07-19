@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using AssetManager.DTO;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AssetManager.Controllers
 {
+    [Route("api/[controller]")]
+
     public class AccountController : ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;
@@ -14,7 +17,9 @@ namespace AssetManager.Controllers
             _signInManager = signInManager;
         }
 
-        [HttpPost]
+        [HttpPost("register")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> Register(string username, string password)
         {
             var user = new IdentityUser { UserName = username };
@@ -30,7 +35,9 @@ namespace AssetManager.Controllers
             return BadRequest(result.Errors);
         }
 
-        [HttpPost]
+        [HttpPost("login")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> Login(string username, string password)
         {
             var result = await _signInManager.PasswordSignInAsync(username, password, isPersistent: false, lockoutOnFailure: false);

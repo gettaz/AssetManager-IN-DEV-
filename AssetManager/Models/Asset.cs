@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AssetManager.Models
@@ -13,9 +14,9 @@ namespace AssetManager.Models
         public ICollection<AssetCategory> AssetCategories { get; set; }
         public DateTime DateBought { get; set; }
         public DateTime? DateSold { get; set; }
-        public string UserId { get; set; }
 
-        [ForeignKey("UserId")]
+        [ForeignKey("User")]
+        public string UserId { get; set; }
         public IdentityUser User { get; set; }
 
     }

@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using AssetManager.Data;
 using AssetManager.Interfaces;
 using AssetManager.Repository;
-using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,6 +37,20 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var seed = services.GetRequiredService<Seed>();
+         seed.SeedDataContext();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
 
 app.MapControllers();
 

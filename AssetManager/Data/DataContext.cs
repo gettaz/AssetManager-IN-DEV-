@@ -3,14 +3,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
-
 namespace AssetManager.Data
 {
     public class DataContext : IdentityDbContext<IdentityUser>
     {
-        public DataContext(DbContextOptions<DataContext> options) : IdentityDbContext<IdentityUser>
+        public DataContext(DbContextOptions<DataContext> options)
+            : base(options)
         {
-
         }
 
         public virtual DbSet<Category> Categories { get; set; }
@@ -19,17 +18,28 @@ namespace AssetManager.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<AssetCategory>()
                 .HasKey(ac => new { ac.AssetId, ac.CategoryId });
+
             modelBuilder.Entity<AssetCategory>()
                 .HasOne(a => a.Asset)
                 .WithMany(ac => ac.AssetCategories)
-                .HasForeignKey(ac => ac.AssetId);
+                .HasForeignKey(ac => ac.AssetId)
+                .OnDelete(DeleteBehavior.NoAction);
+
             modelBuilder.Entity<AssetCategory>()
                 .HasOne(c => c.Category)
                 .WithMany(c => c.AssetCategories)
-                .HasForeignKey(c => c.CategoryId);
-        }
+                .HasForeignKey(c => c.CategoryId)
+                .OnDelete(DeleteBehavior.NoAction);
 
+            modelBuilder.Entity<Asset>()
+                .HasOne(a => a.User)
+                .WithMany()
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }
