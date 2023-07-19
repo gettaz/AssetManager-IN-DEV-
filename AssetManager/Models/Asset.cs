@@ -15,7 +15,7 @@ namespace AssetManager.Models
         public DateTime DateBought { get; set; }
         public DateTime? DateSold { get; set; }
 
-        [ForeignKey("User")]
+        [Required]
         public string UserId { get; set; }
         public IdentityUser User { get; set; }
 

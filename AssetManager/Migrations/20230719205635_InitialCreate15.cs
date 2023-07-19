@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace AssetManager.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate12 : Migration
+    public partial class InitialCreate15 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -206,28 +206,23 @@ namespace AssetManager.Migrations
                 columns: table => new
                 {
                     AssetId = table.Column<int>(type: "int", nullable: false),
-                    CategoryId = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    CategoryId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AssetsCategories", x => new { x.AssetId, x.CategoryId });
                     table.ForeignKey(
-                        name: "FK_AssetsCategories_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_AssetsCategories_Assets_AssetId",
                         column: x => x.AssetId,
                         principalTable: "Assets",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_AssetsCategories_Categories_CategoryId",
                         column: x => x.CategoryId,
                         principalTable: "Categories",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -278,11 +273,6 @@ namespace AssetManager.Migrations
                 name: "IX_AssetsCategories_CategoryId",
                 table: "AssetsCategories",
                 column: "CategoryId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AssetsCategories_UserId",
-                table: "AssetsCategories",
-                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Categories_UserId",

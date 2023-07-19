@@ -27,19 +27,13 @@ namespace AssetManager.Data
                 .HasOne(a => a.Asset)
                 .WithMany(ac => ac.AssetCategories)
                 .HasForeignKey(ac => ac.AssetId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<AssetCategory>()
                 .HasOne(c => c.Category)
                 .WithMany(c => c.AssetCategories)
                 .HasForeignKey(c => c.CategoryId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            modelBuilder.Entity<Asset>()
-                .HasOne(a => a.User)
-                .WithMany()
-                .HasForeignKey(a => a.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
