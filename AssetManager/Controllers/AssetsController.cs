@@ -23,6 +23,7 @@ namespace AssetManager.Controllers
 
         [HttpGet("{userId}")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<Asset>))]
+        [ProducesResponseType(404)]
 
         public IActionResult GetAssets(string userId)
         {

@@ -30,18 +30,20 @@ namespace AssetManager
                 {
                     new Asset
                     {
+                        UserId = user1.Id,
                         User = user1,
                         AssetName = "Apple Inc.",
                         Ticker = "AAPL",
                         PriceBought = 150.0,
                         BrokerName = "Broker1",
                         AssetCategories = new List<AssetCategory>
-                            { new AssetCategory() { Category = new Category() { Name = "Technology" } } },
+                            { new AssetCategory() { Category = new Category() { Name = "Technology", UserId = user1.Id } } },
                         DateBought = new DateTime(2021, 1, 1),
                         DateSold = new DateTime(2022, 1, 1)
                     },
                     new Asset
                     {
+                        UserId = user1.Id,
                         User = user1,
                         AssetName = "Microsoft Corp.",
                         Ticker = "MSFT",
@@ -49,38 +51,41 @@ namespace AssetManager
                         BrokerName = "Broker1",
                         AssetCategories = new List<AssetCategory>()
                         {
-                            new AssetCategory() { Category = new Category() { Name = "Computers" } },
-                            new AssetCategory() { Category = new Category() { Name = "Technology" } }
+                            new AssetCategory() { Category = new Category() { Name = "Computers" ,UserId = user1.Id } },
+                            new AssetCategory() { Category = new Category() { Name = "Technology",UserId = user1.Id } }
                         },
                         DateBought = new DateTime(2021, 2, 1),
                         DateSold = null
                     },
                     new Asset
-                    {
+                    {                        
+                        UserId = user2.Id,
                         User = user2,
                         AssetName = "Amazon Inc.",
                         Ticker = "AMZN",
                         PriceBought = 2500.0,
                         BrokerName = "Broker2",
                         AssetCategories = new List<AssetCategory>
-                            { new AssetCategory() { Category = new Category() { Name = "Ecommerce" } } },
+                            { new AssetCategory() { Category = new Category() { Name = "Ecommerce" , UserId = user2.Id} } },
                         DateBought = new DateTime(2022, 1, 1),
                         DateSold = new DateTime(2023, 1, 1)
                     },
                     new Asset
                     {
+                        UserId = user3.Id,
                         User = user3,
                         AssetName = "Tesla Inc.",
                         Ticker = "TSLA",
                         PriceBought = 650.0,
                         BrokerName = "Broker3",
                         AssetCategories = new List<AssetCategory>
-                            { new AssetCategory() { Category = new Category() { Name = "Cars" } } },
+                            { new AssetCategory() { Category = new Category() { Name = "Cars", UserId = user3.Id } } },
                         DateBought = new DateTime(2022, 6, 1),
                         DateSold = null
                     },
                     new Asset
                     {
+                        UserId = user2.Id,
                         User = user2,
                         AssetName = "Walmart Inc.",
                         Ticker = "WMT",
@@ -90,7 +95,7 @@ namespace AssetManager
                         {
                             new AssetCategory
                             {
-                                Category = new Category() { Name = "Retail" }
+                                Category = new Category() { Name = "Retail", UserId = user2.Id}
                             }
                         },
                         DateBought = new DateTime(2022, 7, 1),
