@@ -26,9 +26,22 @@ namespace AssetManager.Repository
 
         public bool UpdateAsset(Asset asset)
         {
-            _context.Update(asset);
+            _context.Attach(asset);
+
+            var entry = _context.Entry(asset);
+
+            // For each property in the asset, mark it as modified if it is not null
+            foreach (var property in entry.Properties)
+            {
+                if (property.CurrentValue != null && property.Metadata.IsForeignKey())
+                {
+                    property.IsModified = true;
+                }
+            }
+
             return Save();
         }
+
 
         public bool DeleteAsset(int assetId)
         {

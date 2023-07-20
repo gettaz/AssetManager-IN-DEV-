@@ -10,6 +10,7 @@ namespace AssetManager.Models
         public string AssetName { get; set; }
         public string Ticker { get; set; }
         public double PriceBought { get; set; }
+        public double Amount { get; set; }
         public string BrokerName { get; set; }
         public ICollection<AssetCategory> AssetCategories { get; set; }
         public DateTime DateBought { get; set; }

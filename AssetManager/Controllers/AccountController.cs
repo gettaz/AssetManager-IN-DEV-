@@ -1,5 +1,4 @@
-﻿using AssetManager.DTO;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AssetManager.Controllers
@@ -24,9 +23,11 @@ namespace AssetManager.Controllers
         {
             var user = new IdentityUser { UserName = username };
             var result = await _userManager.CreateAsync(user, password);
-
+            
             if (result.Succeeded)
             {
+                user.EmailConfirmed = true; // Add this line to confirm the email
+                await _userManager.UpdateAsync(user); // And this line to save the change
                 await _signInManager.SignInAsync(user, isPersistent: false);
                 return Ok();
             }
@@ -34,21 +35,32 @@ namespace AssetManager.Controllers
             // If we got this far, something failed.
             return BadRequest(result.Errors);
         }
-
         [HttpPost("login")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         public async Task<IActionResult> Login(string username, string password)
         {
-            var result = await _signInManager.PasswordSignInAsync(username, password, isPersistent: false, lockoutOnFailure: false);
+            var user = await _userManager.FindByNameAsync(username);
+            if (user == null)
+            {
+                // Handle case when there is no user with the provided username
+                return Unauthorized("Invalid username.");
+            }
+
+            var result = await _signInManager.PasswordSignInAsync(user, password, isPersistent: false, lockoutOnFailure: false);
 
             if (result.Succeeded)
             {
-                return Ok();
+                return Ok(new { UserId = user.Id });  // Return the user's Id in the response
             }
 
-            // If we got this far, something failed.
-            return Unauthorized();
+            if (result.IsNotAllowed)
+            {
+                return Unauthorized("User is not allowed.");
+            }
+
+            // Handle other cases such as when the user is locked out
+            return Unauthorized("Invalid login attempt.");
         }
     }
 

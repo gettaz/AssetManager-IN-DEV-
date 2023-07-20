@@ -36,6 +36,7 @@ namespace AssetManager
                         Ticker = "AAPL",
                         PriceBought = 150.0,
                         BrokerName = "Broker1",
+                        Amount = 10,
                         AssetCategories = new List<AssetCategory>
                             { new AssetCategory() { Category = new Category() { Name = "Technology", UserId = user1.Id } } },
                         DateBought = new DateTime(2021, 1, 1),
@@ -48,6 +49,7 @@ namespace AssetManager
                         AssetName = "Microsoft Corp.",
                         Ticker = "MSFT",
                         PriceBought = 200.0,
+                        Amount = 10,
                         BrokerName = "Broker1",
                         AssetCategories = new List<AssetCategory>()
                         {
@@ -64,6 +66,7 @@ namespace AssetManager
                         AssetName = "Amazon Inc.",
                         Ticker = "AMZN",
                         PriceBought = 2500.0,
+                        Amount = 10,
                         BrokerName = "Broker2",
                         AssetCategories = new List<AssetCategory>
                             { new AssetCategory() { Category = new Category() { Name = "Ecommerce" , UserId = user2.Id} } },
@@ -77,6 +80,7 @@ namespace AssetManager
                         AssetName = "Tesla Inc.",
                         Ticker = "TSLA",
                         PriceBought = 650.0,
+                        Amount = 10,
                         BrokerName = "Broker3",
                         AssetCategories = new List<AssetCategory>
                             { new AssetCategory() { Category = new Category() { Name = "Cars", UserId = user3.Id } } },
@@ -90,6 +94,7 @@ namespace AssetManager
                         AssetName = "Walmart Inc.",
                         Ticker = "WMT",
                         PriceBought = 140.0,
+                        Amount = 10,
                         BrokerName = "Broker2",
                         AssetCategories = new List<AssetCategory>()
                         {

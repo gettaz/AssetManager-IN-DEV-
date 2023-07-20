@@ -4,6 +4,8 @@ using AssetManager.Data;
 using AssetManager.Interfaces;
 using AssetManager.Repository;
 using Microsoft.AspNetCore.Identity;
+using AssetManager.Helper;
+using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,19 +15,22 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddAutoMapper(typeof(MappingProfiles));
 builder.Services.AddScoped<IAssetRepository, AssetRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddHttpClient();
 builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(builder =>
     {
-        builder.AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader();
+        options.AddPolicy("AllowAllOrigins",
+            builder =>
+            {
+                builder
+                    .AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            });
     });
-});
+
 
 builder.Services.AddDbContext<DataContext>(options =>
 {
@@ -42,9 +47,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -59,8 +61,24 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "An error occurred while seeding the database.");
     }
 }
+var config = new MapperConfiguration(cfg =>
+{
+    cfg.AddProfile<MappingProfiles>();
+});
+try
+{
+    config.AssertConfigurationIsValid();
+}
+catch (Exception e)
+{
+    Console.WriteLine(e);
+    throw;
+}
+app.UseCors("AllowAllOrigins");
+app.UseHttpsRedirection();
+app.UseRouting();
 
-app.UseCors();
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

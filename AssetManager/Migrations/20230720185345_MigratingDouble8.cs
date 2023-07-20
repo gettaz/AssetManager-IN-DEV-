@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace AssetManager.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate15 : Migration
+    public partial class MigratingDouble8 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -165,6 +165,7 @@ namespace AssetManager.Migrations
                     AssetName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Ticker = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PriceBought = table.Column<double>(type: "float", nullable: false),
+                    Amount = table.Column<double>(type: "float", nullable: false),
                     BrokerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DateBought = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DateSold = table.Column<DateTime>(type: "datetime2", nullable: true),

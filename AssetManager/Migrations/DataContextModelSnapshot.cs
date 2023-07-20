@@ -30,6 +30,9 @@ namespace AssetManager.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<double>("Amount")
+                        .HasColumnType("float");
+
                     b.Property<string>("AssetName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");

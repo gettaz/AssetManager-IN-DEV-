@@ -15,10 +15,11 @@ namespace AssetManager.Controllers
         private readonly IAssetRepository _assetRepository;
         private readonly IMapper _mapper;
 
-        public AssetsController(ILogger<AssetsController> logger, IAssetRepository assetRepository)
+        public AssetsController(ILogger<AssetsController> logger, IAssetRepository assetRepository, IMapper mapper)
         {
             _logger = logger;
             _assetRepository = assetRepository;
+            _mapper = mapper;
         }
 
         [HttpGet("{userId}")]
@@ -123,29 +124,50 @@ namespace AssetManager.Controllers
 
             return Ok("Successfully created");
         }
-
         [HttpPost("update")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult UpdateAsset([FromBody] AssetDto asset)
+        public IActionResult UpdateAsset([FromBody] AssetDto assetDto)
         {
-            if (asset == null)
+            if (assetDto == null)
                 return BadRequest(ModelState);
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var assetMap = _mapper.Map<Asset>(asset);
+            var assetToChange = _assetRepository.GetUserAssets(assetDto.UserId).Where(ass => ass.Id == assetDto.Id).FirstOrDefault();
 
+            if (assetToChange == null)
+            {
+                ModelState.AddModelError("", "Asset not found");
+                return NotFound(ModelState);
+            }
 
-            if (!_assetRepository.UpdateAsset(assetMap))
+            if (assetToChange.UserId != assetDto.UserId)
+            {
+                ModelState.AddModelError("", "User doesn't have the right to modify this asset");
+                return Unauthorized(ModelState);
+            }
+
+            // Use reflection to map non-null properties from the DTO to the entity
+            foreach (var prop in assetDto.GetType().GetProperties())
+            {
+                if (prop.GetValue(assetDto) != null)
+                {
+                    assetToChange.GetType().GetProperty(prop.Name)?.SetValue(assetToChange, prop.GetValue(assetDto));
+                }
+            }
+
+            if (!_assetRepository.UpdateAsset(assetToChange))
             {
                 ModelState.AddModelError("", "Something went wrong while updating");
                 return StatusCode(500, ModelState);
             }
 
-            return Ok("Successfully created");
+            return Ok("Successfully updated");
         }
+
+
 
         [HttpDelete("remove")]
         [ProducesResponseType(204)]
