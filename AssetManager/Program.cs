@@ -74,11 +74,9 @@ catch (Exception e)
     Console.WriteLine(e);
     throw;
 }
+app.UseRouting();
 app.UseCors("AllowAllOrigins");
 app.UseHttpsRedirection();
-app.UseRouting();
-
 app.UseAuthorization();
 app.MapControllers();
-
 app.Run();

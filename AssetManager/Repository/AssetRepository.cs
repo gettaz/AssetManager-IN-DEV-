@@ -12,11 +12,10 @@ namespace AssetManager.Repository
             _context = context;
         }
 
-        public ICollection<Asset> GetUserAssets(string userId)
+        public IEnumerable<Asset> GetUserAssets(string userId)
         {
             return _context.Assets.Where(a => a.UserId == userId).ToList();
         }
-
 
         public bool CreateAsset(Asset asset)
         {
@@ -58,28 +57,53 @@ namespace AssetManager.Repository
             return Save(); 
         }
 
-        public ICollection<Asset> GetPastHoldings(string userId)
+        public IEnumerable<Asset> GetPastHoldings(string userId)
         {
             var userAssets = GetUserAssets(userId);
             return userAssets.Where(a => a.DateSold != null).ToList();
         }
 
-        public ICollection<Asset> GetAssetsByBroker(string userId, string brokerName)
+        public IEnumerable<Asset> GetAssetsByBroker(string userId, string brokerName)
         {
             var userAssets = GetUserAssets(userId);
             return userAssets.Where(a => a.BrokerName == brokerName).ToList();
         }
 
-        public ICollection<Asset> GetAssetsByCategory(string userId, int categoryId)
+        public IEnumerable<Asset> GetAssetsByCategory(string userId, string category)
         {
             var userAssets = GetUserAssets(userId);
-            return userAssets.Where(a => a.AssetCategories.
-                Any(ac => ac.CategoryId == categoryId)).ToList();
+
+            if (userAssets.Any())
+            {
+                var assetByCategory = _context.AssetsCategories.Where(ac=> ac.Category.Name == category).Select(ac => ac.Asset).ToList();
+                return assetByCategory;
+            }
+            return userAssets;
         }
         private bool Save()
         {
             var saved = _context.SaveChanges();
             return saved > 0 ? true : false;
+        }
+
+        public bool AddAssetToCategory(string userId, int assetId, string categoryName)
+        {
+            var asset = _context.Assets.FirstOrDefault(a => a.UserId == userId && a.Id == assetId);
+            var category = _context.Categories.FirstOrDefault(c => c.Name == categoryName);
+
+            if (asset == null || category == null)
+            {
+                return false;
+            }
+
+            var assetCategory = new AssetCategory
+            {
+                AssetId = assetId,
+                CategoryId = category.Id
+            };
+
+            _context.AssetsCategories.Add(assetCategory);
+            return Save();
         }
 
     }

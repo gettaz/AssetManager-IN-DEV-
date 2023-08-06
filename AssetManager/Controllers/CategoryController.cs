@@ -16,14 +16,15 @@ namespace AssetManager.Controllers
         private readonly ILogger<CategoryController> _logger;
         private readonly IMapper _mapper;
 
-        public CategoryController(ILogger<CategoryController> logger,ICategoryRepository categoryRepository)
+        public CategoryController(ILogger<CategoryController> logger,ICategoryRepository categoryRepository, IMapper mapper)
         {
             _logger = logger;
             _categoryRepository = categoryRepository;
+            _mapper = mapper;
         }
 
         [HttpGet("{userId}")]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<Asset>))]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<CategoryDto>))]
 
         public IActionResult GetCategories(string userId)
         {
@@ -55,7 +56,12 @@ namespace AssetManager.Controllers
                 return BadRequest(ModelState);
 
             var categoryMap = _mapper.Map<Category>(category);
-
+            var existingCategory = _categoryRepository.GetUserCategories(categoryMap.UserId);
+            if (existingCategory.Any(c => c.Name == category.Name))
+            {
+                ModelState.AddModelError("", "There is already a category with such name");
+                return StatusCode(409, ModelState);
+            }
 
             if (!_categoryRepository.CreateCategory(categoryMap))
             {
@@ -77,15 +83,21 @@ namespace AssetManager.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var categoryMap = _mapper.Map<Category>(category);
             var categories = _categoryRepository.GetUserCategories(category.UserId);
-            var current = categories.FirstOrDefault(c => c.Name == category.Name);
+            if (categories.Any(c => c.Name == category.Name))
+            {
+                ModelState.AddModelError("", "There is already a category with such name");
+                return StatusCode(409, ModelState);
+            }
 
-            if(current == null)
+            var current = categories.FirstOrDefault(c => c.Id == category.Id);
+            if (current == null)
             {
                 return NotFound(ModelState);
             }
 
+            current.Name = category.Name;
+            var categoryMap = _mapper.Map<Category>(current);
             if (!_categoryRepository.UpdateCategory(categoryMap))
             {
                 ModelState.AddModelError("", "Something went wrong while updating");

@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using Microsoft.IdentityModel.Tokens;
 using AssetManager.DTO;
+using AssetManager.DTO.AssetManager.DTO;
+using AssetManager.Repository;
 
 namespace AssetManager.Controllers
 {
@@ -13,12 +15,14 @@ namespace AssetManager.Controllers
     {
         private readonly ILogger<AssetsController> _logger;
         private readonly IAssetRepository _assetRepository;
+        private readonly ICategoryRepository _categoryRepository;
         private readonly IMapper _mapper;
 
-        public AssetsController(ILogger<AssetsController> logger, IAssetRepository assetRepository, IMapper mapper)
+        public AssetsController(ILogger<AssetsController> logger, IAssetRepository assetRepository, ICategoryRepository categoryRepository, IMapper mapper)
         {
             _logger = logger;
             _assetRepository = assetRepository;
+            _categoryRepository = categoryRepository;
             _mapper = mapper;
         }
 
@@ -42,18 +46,17 @@ namespace AssetManager.Controllers
             return Ok(assets);
         }
 
-        [HttpGet("Assets/{userId}/{categoryId}")]
+        [HttpGet("{userId}/assetByCategory/{category}")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<Asset>))]
 
-        public IActionResult GetAssetsByCategory(string userId, int categoryId)
+        public IActionResult GetAssetsByCategory(string userId, string category)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var assets = _assetRepository.GetAssetsByCategory(userId, categoryId);
-
+            var assets = _assetRepository.GetAssetsByCategory(userId, category);
             if (assets.IsNullOrEmpty())
             {
                 return NotFound(ModelState);
@@ -165,6 +168,35 @@ namespace AssetManager.Controllers
             }
 
             return Ok("Successfully updated");
+        }
+
+        [HttpPost("addcategory")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        public IActionResult AddAssetCategory([FromBody] AssetCategoryDto assetCategoryDto)
+        {
+            if (assetCategoryDto == null)
+                return BadRequest(ModelState);
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var asset = _assetRepository.GetUserAssets(assetCategoryDto.UserId).FirstOrDefault(a => a.Id == assetCategoryDto.AssetId);
+            var category = _categoryRepository.GetUserCategories(assetCategoryDto.UserId).FirstOrDefault(c => c.Name == assetCategoryDto.CategoryName);
+
+            if (asset == null || category == null)
+            {
+                ModelState.AddModelError("", "Asset or Category not found");
+                return NotFound(ModelState);
+            }
+
+            if (!_assetRepository.AddAssetToCategory(assetCategoryDto.UserId, assetCategoryDto.AssetId, assetCategoryDto.CategoryName))
+            {
+                ModelState.AddModelError("", "Something went wrong while adding asset to category");
+                return StatusCode(500, ModelState);
+            }
+
+            return Ok("Successfully added asset to category");
         }
 
 
