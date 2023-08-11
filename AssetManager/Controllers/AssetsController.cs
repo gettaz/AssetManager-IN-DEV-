@@ -199,7 +199,34 @@ namespace AssetManager.Controllers
             return Ok("Successfully added asset to category");
         }
 
+        [HttpPost("removeCategory")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        public IActionResult RemoveAssetCategory([FromBody] AssetCategoryDto assetCategoryDto)
+        {
+            if (assetCategoryDto == null)
+                return BadRequest(ModelState);
 
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var asset = _assetRepository.GetUserAssets(assetCategoryDto.UserId).FirstOrDefault(a => a.Id == assetCategoryDto.AssetId);
+            var category = _categoryRepository.GetUserCategories(assetCategoryDto.UserId).FirstOrDefault(c => c.Id == assetCategoryDto.CategoryId);
+
+            if (asset == null || category == null)
+            {
+                ModelState.AddModelError("", "Asset or Category not found");
+                return NotFound(ModelState);
+            }
+
+            if (!_assetRepository.RemoveAssetFromCategory(assetCategoryDto.UserId, assetCategoryDto.AssetId, assetCategoryDto.CategoryId))
+            {
+                ModelState.AddModelError("", "Something went wrong while adding asset to category");
+                return StatusCode(500, ModelState);
+            }
+
+            return Ok("Successfully added asset to category");
+        }
 
         [HttpDelete("remove")]
         [ProducesResponseType(204)]

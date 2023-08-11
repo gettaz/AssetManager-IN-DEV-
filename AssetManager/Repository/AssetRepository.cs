@@ -102,5 +102,24 @@ namespace AssetManager.Repository
             return Save();
         }
 
+        public bool RemoveAssetFromCategory(string userId, int assetId, int categoryId)
+        {
+            var asset = _context.Assets.FirstOrDefault(a => a.UserId == userId && a.Id == assetId);
+            var category = _context.Categories.FirstOrDefault(c => c.Id == categoryId);
+
+            if (asset == null || category == null)
+            {
+                return false;
+            }
+
+            var assetCategory = new AssetCategory
+            {
+                AssetId = assetId,
+                CategoryId = category.Id
+            };
+
+            _context.AssetsCategories.Remove(assetCategory);
+            return Save();
+        }
     }
 }
