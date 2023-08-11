@@ -6,7 +6,7 @@
         {
             public string UserId { get; set; }
             public int AssetId { get; set; }
-            public string CategoryName { get; set; }
+            public int CategoryId { get; set; }
         }
     }
 

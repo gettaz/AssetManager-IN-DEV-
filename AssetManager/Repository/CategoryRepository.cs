@@ -26,12 +26,15 @@ namespace AssetManager.Repository
             {
                 return false;
             }
-            foreach (var ac in category.AssetCategories)
-            {
-                _context.AssetsCategories.Remove(ac);
+
+            var rem = _context.AssetsCategories.Where(ac => ac.CategoryId == categoryId);
+
+            foreach (var ac in rem)
+            { 
+                _context.AssetsCategories.Remove(ac);        
             }
 
-            _context.Remove(category);
+            _context.Categories.Remove(category);
 
             return Save();
         }

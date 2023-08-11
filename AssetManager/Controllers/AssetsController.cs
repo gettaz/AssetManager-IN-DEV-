@@ -46,17 +46,17 @@ namespace AssetManager.Controllers
             return Ok(assets);
         }
 
-        [HttpGet("{userId}/assetByCategory/{category}")]
+        [HttpGet("{userId}/assetByCategory/{categoryId}")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<Asset>))]
 
-        public IActionResult GetAssetsByCategory(string userId, string category)
+        public IActionResult GetAssetsByCategory(string userId, int categoryId)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var assets = _assetRepository.GetAssetsByCategory(userId, category);
+            var assets = _assetRepository.GetAssetsByCategory(userId, categoryId);
             if (assets.IsNullOrEmpty())
             {
                 return NotFound(ModelState);
@@ -182,7 +182,7 @@ namespace AssetManager.Controllers
                 return BadRequest(ModelState);
 
             var asset = _assetRepository.GetUserAssets(assetCategoryDto.UserId).FirstOrDefault(a => a.Id == assetCategoryDto.AssetId);
-            var category = _categoryRepository.GetUserCategories(assetCategoryDto.UserId).FirstOrDefault(c => c.Name == assetCategoryDto.CategoryName);
+            var category = _categoryRepository.GetUserCategories(assetCategoryDto.UserId).FirstOrDefault(c => c.Id == assetCategoryDto.CategoryId);
 
             if (asset == null || category == null)
             {
@@ -190,7 +190,7 @@ namespace AssetManager.Controllers
                 return NotFound(ModelState);
             }
 
-            if (!_assetRepository.AddAssetToCategory(assetCategoryDto.UserId, assetCategoryDto.AssetId, assetCategoryDto.CategoryName))
+            if (!_assetRepository.AddAssetToCategory(assetCategoryDto.UserId, assetCategoryDto.AssetId, assetCategoryDto.CategoryId))
             {
                 ModelState.AddModelError("", "Something went wrong while adding asset to category");
                 return StatusCode(500, ModelState);
