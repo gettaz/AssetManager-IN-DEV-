@@ -45,7 +45,7 @@ namespace AssetManager.Repository
 
         public bool DeleteAsset(string userId, int assetId)
         {
-            var asset = _context.Assets.FirstOrDefault(a => a.Id == assetId);
+            var asset = GetUserAssets(userId).FirstOrDefault(a => a.Id == assetId);
 
             if (asset == null)
             {
