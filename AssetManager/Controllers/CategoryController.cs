@@ -23,7 +23,7 @@ namespace AssetManager.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("{userId}")]
+        [HttpGet("{userId}/categories")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<CategoryDto>))]
 
         public IActionResult GetCategories(string userId)
@@ -44,7 +44,7 @@ namespace AssetManager.Controllers
         }
 
 
-        [HttpPost("create")]
+        [HttpPost("categories")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         public IActionResult CreateCategory([FromBody] CategoryDto category)
@@ -72,7 +72,7 @@ namespace AssetManager.Controllers
             return Ok("Successfully created");
         }
 
-        [HttpPost("update")]
+        [HttpPost("categories/update")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         public IActionResult UpdateCategory([FromBody] CategoryDto category)
@@ -107,15 +107,15 @@ namespace AssetManager.Controllers
             return Ok("Successfully created");
         }
 
-        [HttpDelete("remove/{categoryId}")]
+        [HttpDelete("{userId}/categories/{categoryId}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult RemoveCategory(int categoryId)
+        public IActionResult RemoveCategory(string userId, int categoryId)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (!_categoryRepository.DeleteCategory(categoryId))
+            if (!_categoryRepository.DeleteCategory(userId, categoryId))
             {
                 ModelState.AddModelError("", "Something went wrong while saving");
                 return StatusCode(500, ModelState);

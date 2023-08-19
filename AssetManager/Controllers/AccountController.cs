@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using AssetManager.DTO;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AssetManager.Controllers
@@ -19,10 +20,10 @@ namespace AssetManager.Controllers
         [HttpPost("register")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> Register(string username, string password)
+        public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
-            var user = new IdentityUser { UserName = username };
-            var result = await _userManager.CreateAsync(user, password);
+            var user = new IdentityUser { UserName = dto.Username };
+            var result = await _userManager.CreateAsync(user, dto.Password);
             
             if (result.Succeeded)
             {
@@ -38,16 +39,16 @@ namespace AssetManager.Controllers
         [HttpPost("login")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> Login(string username, string password)
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            var user = await _userManager.FindByNameAsync(username);
+            var user = await _userManager.FindByNameAsync(dto.Username);
             if (user == null)
             {
                 // Handle case when there is no user with the provided username
                 return Unauthorized("Invalid username.");
             }
 
-            var result = await _signInManager.PasswordSignInAsync(user, password, isPersistent: false, lockoutOnFailure: false);
+            var result = await _signInManager.PasswordSignInAsync(user, dto.Password, isPersistent: false, lockoutOnFailure: false);
 
             if (result.Succeeded)
             {

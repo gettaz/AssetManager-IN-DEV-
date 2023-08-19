@@ -18,7 +18,7 @@ namespace AssetManager.Repository
             return Save();
         }
 
-        public bool DeleteCategory(int categoryId)
+        public bool DeleteCategory(string userId, int categoryId)
         {
             var category = _context.Categories.FirstOrDefault(c => c.Id == categoryId);
 

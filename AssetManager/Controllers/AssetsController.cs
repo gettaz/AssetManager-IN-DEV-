@@ -26,7 +26,7 @@ namespace AssetManager.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("{userId}")]
+        [HttpGet("{userId}/assets")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<Asset>))]
         [ProducesResponseType(404)]
 
@@ -46,7 +46,7 @@ namespace AssetManager.Controllers
             return Ok(assets);
         }
 
-        [HttpGet("{userId}/assetByCategory/{categoryId}")]
+        [HttpGet("{userId}/assets/category/{categoryId}")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<Asset>))]
 
         public IActionResult GetAssetsByCategory(string userId, int categoryId)
@@ -65,7 +65,7 @@ namespace AssetManager.Controllers
             return Ok(assets);
         }
 
-        [HttpGet("{userId}/{broker}")]
+        [HttpGet("{userId}/assets/broker/{broker}")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<Asset>))]
 
         public IActionResult GetAssetsByBroker(string userId, string broker)
@@ -85,7 +85,7 @@ namespace AssetManager.Controllers
             return Ok(assets);
         }
 
-        [HttpGet("{userId}/past")]
+        [HttpGet("{userId}/assets/past")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<Asset>))]
 
         public IActionResult GetPastHoldings(string userId)
@@ -105,7 +105,7 @@ namespace AssetManager.Controllers
             return Ok(assets);
         }
 
-        [HttpPost("create")]
+        [HttpPost("assets")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         public IActionResult CreateAsset([FromBody] AssetDto asset)
@@ -127,7 +127,8 @@ namespace AssetManager.Controllers
 
             return Ok("Successfully created");
         }
-        [HttpPost("update")]
+
+        [HttpPost("assets/update")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         public IActionResult UpdateAsset([FromBody] AssetDto assetDto)
@@ -170,7 +171,7 @@ namespace AssetManager.Controllers
             return Ok("Successfully updated");
         }
 
-        [HttpPost("addcategory")]
+        [HttpPost("assets/category")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         public IActionResult AddAssetCategory([FromBody] AssetCategoryDto assetCategoryDto)
@@ -199,7 +200,7 @@ namespace AssetManager.Controllers
             return Ok("Successfully added asset to category");
         }
 
-        [HttpPost("removeCategory")]
+        [HttpDelete("assets/category")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         public IActionResult RemoveAssetCategory([FromBody] AssetCategoryDto assetCategoryDto)
@@ -225,18 +226,18 @@ namespace AssetManager.Controllers
                 return StatusCode(500, ModelState);
             }
 
-            return Ok("Successfully added asset to category");
+            return Ok("Successfully removed asset from category");
         }
 
-        [HttpDelete("remove")]
+        [HttpDelete("{userId}/assets/{assetId}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult RemoveAsset(int assetId)
+        public IActionResult RemoveAsset(string userId, int assetId)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (!_assetRepository.DeleteAsset(assetId))
+            if (!_assetRepository.DeleteAsset(userId, assetId))
             {
                 ModelState.AddModelError("", "Something went wrong while saving");
                 return StatusCode(500, ModelState);

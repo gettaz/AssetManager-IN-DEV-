@@ -1,6 +1,7 @@
 ﻿using AssetManager.Data;
 using AssetManager.Interfaces;
 using AssetManager.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace AssetManager.Repository
 {
@@ -42,14 +43,22 @@ namespace AssetManager.Repository
         }
 
 
-        public bool DeleteAsset(int assetId)
+        public bool DeleteAsset(string userId, int assetId)
         {
             var asset = _context.Assets.FirstOrDefault(a => a.Id == assetId);
+
             if (asset == null)
             {
                 return false; 
             }
-            
+
+            var relatedAssetCategories = _context.AssetsCategories.Where(ac => ac.AssetId == assetId).ToList();
+
+            foreach (var relatedAssetCategory in relatedAssetCategories)
+            {
+                _context.AssetsCategories.Remove(relatedAssetCategory);
+            }
+
             _context.Remove(asset);
             return Save(); 
         }

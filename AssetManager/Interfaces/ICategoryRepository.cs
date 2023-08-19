@@ -7,7 +7,7 @@ namespace AssetManager.Interfaces
         IEnumerable<Category> GetUserCategories(string userId);
         bool CreateCategory(Category category);
         bool UpdateCategory(Category category);
-        bool DeleteCategory(int categoryId);
+        bool DeleteCategory(string userId, int categoryId);
         bool Save();
     }
 }
