@@ -12,5 +12,6 @@ namespace AssetManager.DTO
         public string? BrokerName { get; set; }
         public DateTime? DateBought { get; set; }
         public double? Amount { get; set; }
+        public string Category { get; set; }
     }
 }
