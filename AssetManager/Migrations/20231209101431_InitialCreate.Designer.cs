@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AssetManager.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230720185345_MigratingDouble8")]
-    partial class MigratingDouble8
+    [Migration("20231209101431_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -40,9 +40,11 @@ namespace AssetManager.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("BrokerName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("BrokerId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("DateBought")
                         .HasColumnType("datetime2");
@@ -63,24 +65,36 @@ namespace AssetManager.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BrokerId");
+
+                    b.HasIndex("CategoryId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("Assets");
                 });
 
-            modelBuilder.Entity("AssetManager.Models.AssetCategory", b =>
+            modelBuilder.Entity("AssetManager.Models.Broker", b =>
                 {
-                    b.Property<int>("AssetId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.HasKey("AssetId", "CategoryId");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasIndex("CategoryId");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
-                    b.ToTable("AssetsCategories");
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Brokers");
                 });
 
             modelBuilder.Entity("AssetManager.Models.Category", b =>
@@ -310,6 +324,31 @@ namespace AssetManager.Migrations
 
             modelBuilder.Entity("AssetManager.Models.Asset", b =>
                 {
+                    b.HasOne("AssetManager.Models.Broker", "Broker")
+                        .WithMany("Assets")
+                        .HasForeignKey("BrokerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AssetManager.Models.Category", "Category")
+                        .WithMany("Assets")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Broker");
+
+                    b.Navigation("Category");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AssetManager.Models.Broker", b =>
+                {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -317,25 +356,6 @@ namespace AssetManager.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("AssetManager.Models.AssetCategory", b =>
-                {
-                    b.HasOne("AssetManager.Models.Asset", "Asset")
-                        .WithMany("AssetCategories")
-                        .HasForeignKey("AssetId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("AssetManager.Models.Category", "Category")
-                        .WithMany("AssetCategories")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Asset");
-
-                    b.Navigation("Category");
                 });
 
             modelBuilder.Entity("AssetManager.Models.Category", b =>
@@ -400,14 +420,14 @@ namespace AssetManager.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("AssetManager.Models.Asset", b =>
+            modelBuilder.Entity("AssetManager.Models.Broker", b =>
                 {
-                    b.Navigation("AssetCategories");
+                    b.Navigation("Assets");
                 });
 
             modelBuilder.Entity("AssetManager.Models.Category", b =>
                 {
-                    b.Navigation("AssetCategories");
+                    b.Navigation("Assets");
                 });
 #pragma warning restore 612, 618
         }

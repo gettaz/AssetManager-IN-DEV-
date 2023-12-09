@@ -27,13 +27,6 @@ namespace AssetManager.Repository
                 return false;
             }
 
-            var rem = _context.AssetsCategories.Where(ac => ac.CategoryId == categoryId);
-
-            foreach (var ac in rem)
-            { 
-                _context.AssetsCategories.Remove(ac);        
-            }
-
             _context.Categories.Remove(category);
 
             return Save();
@@ -41,13 +34,8 @@ namespace AssetManager.Repository
 
         public IEnumerable<Category> GetUserCategories(string userId)
         {
-            return _context.Categories.Where(c => c.UserId == userId).ToList();
-        }
-
-        public IEnumerable<Category> GetAssetCategories(int assetId)
-        {
-            return _context.AssetsCategories.Where(ac => ac.AssetId == assetId)
-                .Select(ac => ac.Category).ToList();
+            return _context.Categories
+                .Where(c => c.UserId == userId).ToList();
         }
 
         public bool Save()

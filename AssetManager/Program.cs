@@ -6,6 +6,7 @@ using AssetManager.Repository;
 using Microsoft.AspNetCore.Identity;
 using AssetManager.Helper;
 using AutoMapper;
+using AssetManager.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(MappingProfiles));
 builder.Services.AddScoped<IAssetRepository, AssetRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IBrokerRepository, BrokerRepository>();
+builder.Services.AddScoped<IAssetService, AssetService>();
+builder.Services.AddScoped<IAssetClassificationsService, AssetClassificationsService>();
 builder.Services.AddHttpClient();
 builder.Services.AddCors(options =>
     {

@@ -13,27 +13,26 @@ namespace AssetManager.Data
         }
 
         public virtual DbSet<Category> Categories { get; set; }
+        public virtual DbSet<Broker> Brokers { get; set; }
         public virtual DbSet<Asset> Assets { get; set; }
-        public virtual DbSet<AssetCategory> AssetsCategories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<AssetCategory>()
-                .HasKey(ac => new { ac.AssetId, ac.CategoryId });
+            // Define the relationship between Asset and Category
+            modelBuilder.Entity<Asset>()
+                .HasOne(a => a.Category)
+                .WithMany(c => c.Assets)
+                .HasForeignKey(a => a.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict); // Adjust the delete behavior as needed
 
-            modelBuilder.Entity<AssetCategory>()
-                .HasOne(a => a.Asset)
-                .WithMany(ac => ac.AssetCategories)
-                .HasForeignKey(ac => ac.AssetId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<AssetCategory>()
-                .HasOne(c => c.Category)
-                .WithMany(c => c.AssetCategories)
-                .HasForeignKey(c => c.CategoryId)
-                .OnDelete(DeleteBehavior.Restrict);
+            // Define the relationship between Asset and Broker
+            modelBuilder.Entity<Asset>()
+                .HasOne(a => a.Broker)
+                .WithMany(b => b.Assets)
+                .HasForeignKey(a => a.BrokerId)
+                .OnDelete(DeleteBehavior.Restrict); // Adjust the delete behavior as needed
         }
     }
 }

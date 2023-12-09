@@ -9,9 +9,9 @@ namespace AssetManager
         private readonly DataContext context;
         private readonly UserManager<IdentityUser> _userManager;
 
-        public Seed(DataContext context, UserManager<IdentityUser> userManger)
+        public Seed(DataContext context, UserManager<IdentityUser> userManager)
         {
-            _userManager = userManger;
+            _userManager = userManager;
             this.context = context;
         }
 
@@ -26,6 +26,16 @@ namespace AssetManager
                 _userManager.CreateAsync(user2, "Password123!").Wait();
                 _userManager.CreateAsync(user3, "Password123!").Wait();
 
+                var technologyCategory = new Category { Name = "Technology", UserId = user1.Id };
+                var computersCategory = new Category { Name = "Computers", UserId = user1.Id };
+                var ecommerceCategory = new Category { Name = "Ecommerce", UserId = user2.Id };
+                var carsCategory = new Category { Name = "Cars", UserId = user3.Id };
+                var retailCategory = new Category { Name = "Retail", UserId = user2.Id };
+
+                var broker1 = new Broker { Name = "Broker1", UserId = user1.Id };
+                var broker2 = new Broker { Name = "Broker2", UserId = user2.Id };
+                var broker3 = new Broker { Name = "Broker3", UserId = user3.Id };
+
                 var assets = new List<Asset>
                 {
                     new Asset
@@ -35,10 +45,9 @@ namespace AssetManager
                         AssetName = "Apple Inc.",
                         Ticker = "AAPL",
                         PriceBought = 150.0,
-                        BrokerName = "Broker1",
                         Amount = 10,
-                        AssetCategories = new List<AssetCategory>
-                            { new AssetCategory() { Category = new Category() { Name = "Technology", UserId = user1.Id } } },
+                        Broker = broker1,
+                        Category = technologyCategory,
                         DateBought = new DateTime(2021, 1, 1),
                         DateSold = new DateTime(2022, 1, 1)
                     },
@@ -50,26 +59,20 @@ namespace AssetManager
                         Ticker = "MSFT",
                         PriceBought = 200.0,
                         Amount = 10,
-                        BrokerName = "Broker1",
-                        AssetCategories = new List<AssetCategory>()
-                        {
-                            new AssetCategory() { Category = new Category() { Name = "Computers" ,UserId = user1.Id } },
-                            new AssetCategory() { Category = new Category() { Name = "Technology",UserId = user1.Id } }
-                        },
-                        DateBought = new DateTime(2021, 2, 1),
-                        DateSold = null
+                        Broker = broker1,
+                        Category = computersCategory,
+                        DateBought = new DateTime(2021, 2, 1)
                     },
                     new Asset
-                    {                        
+                    {
                         UserId = user2.Id,
                         User = user2,
                         AssetName = "Amazon Inc.",
                         Ticker = "AMZN",
                         PriceBought = 2500.0,
                         Amount = 10,
-                        BrokerName = "Broker2",
-                        AssetCategories = new List<AssetCategory>
-                            { new AssetCategory() { Category = new Category() { Name = "Ecommerce" , UserId = user2.Id} } },
+                        Broker = broker2,
+                        Category = ecommerceCategory,
                         DateBought = new DateTime(2022, 1, 1),
                         DateSold = new DateTime(2023, 1, 1)
                     },
@@ -81,11 +84,9 @@ namespace AssetManager
                         Ticker = "TSLA",
                         PriceBought = 650.0,
                         Amount = 10,
-                        BrokerName = "Broker3",
-                        AssetCategories = new List<AssetCategory>
-                            { new AssetCategory() { Category = new Category() { Name = "Cars", UserId = user3.Id } } },
-                        DateBought = new DateTime(2022, 6, 1),
-                        DateSold = null
+                        Broker = broker3,
+                        Category = carsCategory,
+                        DateBought = new DateTime(2022, 6, 1)
                     },
                     new Asset
                     {
@@ -95,14 +96,8 @@ namespace AssetManager
                         Ticker = "WMT",
                         PriceBought = 140.0,
                         Amount = 10,
-                        BrokerName = "Broker2",
-                        AssetCategories = new List<AssetCategory>()
-                        {
-                            new AssetCategory
-                            {
-                                Category = new Category() { Name = "Retail", UserId = user2.Id}
-                            }
-                        },
+                        Broker = broker2,
+                        Category = retailCategory,
                         DateBought = new DateTime(2022, 7, 1),
                         DateSold = new DateTime(2023, 7, 1)
                     }

@@ -17,17 +17,18 @@ namespace AssetManager.Controllers
         private readonly IAssetRepository _assetRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly IMapper _mapper;
-
-        public AssetsController(ILogger<AssetsController> logger, IAssetRepository assetRepository, ICategoryRepository categoryRepository, IMapper mapper)
+        private readonly IAssetService _assetService;
+        public AssetsController(ILogger<AssetsController> logger, IAssetRepository assetRepository, ICategoryRepository categoryRepository, IMapper mapper, IAssetService assetService)
         {
             _logger = logger;
             _assetRepository = assetRepository;
             _categoryRepository = categoryRepository;
             _mapper = mapper;
+            _assetService = assetService;
         }
 
         [HttpGet("{userId}/assets")]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<Asset>))]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<AssetDto>))]
         [ProducesResponseType(404)]
 
         public IActionResult GetAssets(string userId)
@@ -37,8 +38,8 @@ namespace AssetManager.Controllers
                 return BadRequest(ModelState);
             }
 
-            var assets = _assetRepository.GetUserAssets(userId);
-          if (assets.IsNullOrEmpty())
+            var assets = _assetService.GetUserAssets(userId);
+            if (assets.IsNullOrEmpty())
             {
                 return NotFound(ModelState);
             }
@@ -47,7 +48,7 @@ namespace AssetManager.Controllers
         }
 
         [HttpGet("{userId}/assets/category/{categoryId}")]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<Asset>))]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<AssetDto>))]
 
         public IActionResult GetAssetsByCategory(string userId, int categoryId)
         {
@@ -116,10 +117,7 @@ namespace AssetManager.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var assetMap = _mapper.Map<Asset>(asset);
-
-
-            if (!_assetRepository.CreateAsset(assetMap))
+            if (!_assetService.CreateAsset(asset))
             {
                 ModelState.AddModelError("", "Something went wrong while saving");
                 return StatusCode(500, ModelState);
@@ -191,7 +189,7 @@ namespace AssetManager.Controllers
                 return NotFound(ModelState);
             }
 
-            if (!_assetRepository.AddAssetToCategory(assetCategoryDto.UserId, assetCategoryDto.AssetId, assetCategoryDto.CategoryId))
+            if (!_assetRepository.UpdateCategory(assetCategoryDto.UserId, assetCategoryDto.AssetId, assetCategoryDto.CategoryId))
             {
                 ModelState.AddModelError("", "Something went wrong while adding asset to category");
                 return StatusCode(500, ModelState);
@@ -212,15 +210,14 @@ namespace AssetManager.Controllers
                 return BadRequest(ModelState);
 
             var asset = _assetRepository.GetUserAssets(assetCategoryDto.UserId).FirstOrDefault(a => a.Id == assetCategoryDto.AssetId);
-            var category = _categoryRepository.GetUserCategories(assetCategoryDto.UserId).FirstOrDefault(c => c.Id == assetCategoryDto.CategoryId);
 
-            if (asset == null || category == null)
+            if (asset == null || asset.Category == null)
             {
                 ModelState.AddModelError("", "Asset or Category not found");
                 return NotFound(ModelState);
             }
 
-            if (!_assetRepository.RemoveAssetFromCategory(assetCategoryDto.UserId, assetCategoryDto.AssetId, assetCategoryDto.CategoryId))
+            if (!_assetRepository.RemoveAssetCategory(assetCategoryDto.UserId, assetCategoryDto.AssetId))
             {
                 ModelState.AddModelError("", "Something went wrong while adding asset to category");
                 return StatusCode(500, ModelState);

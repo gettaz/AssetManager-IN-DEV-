@@ -8,6 +8,8 @@ namespace AssetManager.Repository
     public class AssetRepository : IAssetRepository
     {
         private DataContext _context;
+
+
         public AssetRepository(DataContext context)
         {
             _context = context;
@@ -15,13 +17,18 @@ namespace AssetManager.Repository
 
         public IEnumerable<Asset> GetUserAssets(string userId)
         {
-            return _context.Assets.Where(a => a.UserId == userId).ToList();
+            return _context.Assets
+                           .Where(a => a.UserId == userId)
+                           .Include(a => a.Broker) // Eagerly load the Broker
+                           .Include(a => a.Category) // Eagerly load the Category
+                           .ToList();
         }
 
         public bool CreateAsset(Asset asset)
         {
-             _context.Add(asset);
-             return Save();
+            // Add and save the asset
+            _context.Add(asset);
+            return Save();
         }
 
         public bool UpdateAsset(Asset asset)
@@ -52,13 +59,6 @@ namespace AssetManager.Repository
                 return false; 
             }
 
-            var relatedAssetCategories = _context.AssetsCategories.Where(ac => ac.AssetId == assetId).ToList();
-
-            foreach (var relatedAssetCategory in relatedAssetCategories)
-            {
-                _context.AssetsCategories.Remove(relatedAssetCategory);
-            }
-
             _context.Remove(asset);
             return Save(); 
         }
@@ -72,12 +72,12 @@ namespace AssetManager.Repository
         public IEnumerable<Asset> GetAssetsByBroker(string userId, string brokerName)
         {
             var userAssets = GetUserAssets(userId);
-            return userAssets.Where(a => a.BrokerName == brokerName).ToList();
+            return userAssets.Where(a => a?.Broker?.Name == brokerName).ToList();
         }
 
         public IEnumerable<Asset> GetAssetsByCategory(string userId, int id)
         {
-            var assetByCategory = _context.AssetsCategories.Where(ac => ac.Category.Id == id && ac.Category.UserId == userId).Select(ac => ac.Asset).ToList();
+            var assetByCategory = _context.Assets.Where(ac => ac.Category.Id == id && ac.Category.UserId == userId).Select(ac => ac).ToList();
 
             if (assetByCategory.Any())
             {
@@ -91,7 +91,7 @@ namespace AssetManager.Repository
             return saved > 0 ? true : false;
         }
 
-        public bool AddAssetToCategory(string userId, int assetId, int categoryId)
+        public bool UpdateCategory(string userId, int assetId, int categoryId)
         {
             var asset = _context.Assets.FirstOrDefault(a => a.UserId == userId && a.Id == assetId);
             var category = _context.Categories.FirstOrDefault(c => c.Id == categoryId);
@@ -101,33 +101,20 @@ namespace AssetManager.Repository
                 return false;
             }
 
-            var assetCategory = new AssetCategory
-            {
-                AssetId = assetId,
-                CategoryId = category.Id
-            };
-
-            _context.AssetsCategories.Add(assetCategory);
+            asset.Category = category;
             return Save();
         }
 
-        public bool RemoveAssetFromCategory(string userId, int assetId, int categoryId)
+        public bool RemoveAssetCategory(string userId, int assetId)
         {
             var asset = _context.Assets.FirstOrDefault(a => a.UserId == userId && a.Id == assetId);
-            var category = _context.Categories.FirstOrDefault(c => c.Id == categoryId);
 
-            if (asset == null || category == null)
+            if (asset == null)
             {
                 return false;
             }
 
-            var assetCategory = new AssetCategory
-            {
-                AssetId = assetId,
-                CategoryId = category.Id
-            };
-
-            _context.AssetsCategories.Remove(assetCategory);
+            asset.Category = null;
             return Save();
         }
     }

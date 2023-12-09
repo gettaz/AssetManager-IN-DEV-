@@ -11,8 +11,8 @@ namespace AssetManager.Interfaces
         bool CreateAsset(Asset asset);
         bool UpdateAsset(Asset asset);
         bool DeleteAsset(string userId, int assetId);
-        public bool AddAssetToCategory(string userId, int assetId, int categoryId);
-        public bool RemoveAssetFromCategory(string userId, int assetId, int categoryId);
+        public bool UpdateCategory(string userId, int assetId, int categoryId);
+        public bool RemoveAssetCategory(string userId, int assetId);
 
     }
 }
