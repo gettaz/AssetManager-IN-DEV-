@@ -1,6 +1,5 @@
 ﻿using AssetManager.DTO;
 using AssetManager.Interfaces;
-using AssetManager.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -18,84 +17,107 @@ namespace AssetManager.Controllers
             _classificationsService = classificationsService;
         }
 
-        [HttpGet("{userId}/categories")]
-        public IActionResult GetCategories(string userId)
+        // Combined endpoint for getting either categories or brokers
+        [HttpGet("{userId}/classifications")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<string>))]
+        public IActionResult GetClassifications(string userId, string classificationType)
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
-            var categories = _classificationsService.GetCategories(userId);
-
-            if (categories.IsNullOrEmpty())
+            IEnumerable<ClassificationDto> classifications = classificationType switch
             {
-                return NotFound();
-            }
+                "broker" => _classificationsService.GetBrokers(userId),
+                "category" => _classificationsService.GetCategories(userId),
+                _ => throw new ArgumentException("Invalid classification type")
+            };
 
-            return Ok(categories);
+            if (classifications.IsNullOrEmpty())
+                return NotFound();
+
+            return Ok(classifications.Select(c=>c.Name).ToList());
         }
 
-        [HttpGet("{userId}/brokers")]
-        public IActionResult GetBrokers(string userId)
+        [HttpGet("{userId}")]
+        public IActionResult GetClassificationDistribution(string userId, string classificationType)
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
-            var brokers = _classificationsService.GetBrokers(userId);
-
-            if (brokers.IsNullOrEmpty())
+            IEnumerable<ClassificationAssetCount> classifications = classificationType switch
             {
-                return NotFound();
-            }
+                "broker" => _classificationsService.GetBrokersAssetCount(userId),
+                "category" => _classificationsService.GetCategoriesAssetCount(userId),
+                _ => throw new ArgumentException("Invalid classification type")
+            };
 
-            return Ok(brokers);
+            if (classifications.IsNullOrEmpty())
+                return NotFound();
+
+            return Ok(classifications);
         }
 
-
-        [HttpPost("{userId}/categories")]
-        public IActionResult CreateCategory(string userId, [FromBody] ClassificationDto category)
+        // Endpoint for creating a classification
+        [HttpPost("{userId}")]
+        public IActionResult CreateClassification(string userId, string classificationType, [FromBody] ClassificationDto classification)
         {
-            if (category == null || !ModelState.IsValid)
+            if (classification == null || !ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            bool success = _classificationsService.CreateCategory(userId, category);
+            bool success = classificationType switch
+            {
+                "broker" => _classificationsService.CreateBroker(userId, classification),
+                "category" => _classificationsService.CreateCategory(userId, classification),
+                _ => throw new ArgumentException("Invalid classification type")
+            };
+
             if (!success)
             {
-                ModelState.AddModelError("", "Something went wrong while saving or category already exists");
+                ModelState.AddModelError("", "Something went wrong while saving or classification already exists");
                 return StatusCode(500, ModelState);
             }
 
             return Ok("Successfully created");
         }
 
-        [HttpPost("{userId}/categories/update")]
-        public IActionResult UpdateCategory(string userId, [FromBody] ClassificationDto category)
+        // Endpoint for updating a classification
+        [HttpPost("{userId}/update")]
+        public IActionResult UpdateClassification(string userId, string classificationType, [FromBody] ClassificationDto classification)
         {
-            if (category == null || !ModelState.IsValid)
+            if (classification == null || !ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            bool success = _classificationsService.UpdateCategory(userId, category);
+            bool success = classificationType switch
+            {
+                "broker" => _classificationsService.UpdateBroker(userId, classification),
+                "category" => _classificationsService.UpdateCategory(userId, classification),
+                _ => throw new ArgumentException("Invalid classification type")
+            };
+
             if (!success)
             {
-                ModelState.AddModelError("", "Something went wrong while updating or category with such name already exists");
+                ModelState.AddModelError("", "Something went wrong while updating or classification with such name already exists");
                 return StatusCode(500, ModelState);
             }
 
             return Ok("Successfully updated");
         }
 
-        [HttpDelete("{userId}/categories/{categoryId}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        public IActionResult RemoveCategory(string userId, int categoryId)
+        // Endpoint for deleting a classification
+        [HttpDelete("{userId}/{classificationId}")]
+        public IActionResult RemoveClassification(string userId, int classificationId, string classificationType)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (!_classificationsService.DeleteCategory(userId, categoryId))
+            bool success = classificationType switch
+            {
+                "broker" => _classificationsService.DeleteBroker(userId, classificationId),
+                "category" => _classificationsService.DeleteCategory(userId, classificationId),
+                _ => throw new ArgumentException("Invalid classification type")
+            };
+
+            if (!success)
             {
                 ModelState.AddModelError("", "Something went wrong while saving");
                 return StatusCode(500, ModelState);

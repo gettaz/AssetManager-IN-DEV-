@@ -6,6 +6,8 @@ namespace AssetManager.Interfaces
     {
         IEnumerable<ClassificationDto> GetCategories(string userId);
         IEnumerable<ClassificationDto> GetBrokers(string userId);
+        IEnumerable<ClassificationAssetCount> GetCategoriesAssetCount(string userId);
+        IEnumerable<ClassificationAssetCount> GetBrokersAssetCount(string userId);
         bool CreateCategory(string userId, ClassificationDto categoryDto);
         bool UpdateCategory(string userId, ClassificationDto categoryDto);
         bool DeleteCategory(string userId, int categoryId);

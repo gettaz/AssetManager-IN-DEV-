@@ -9,14 +9,17 @@ namespace AssetManager.Services
     {
         private readonly ICategoryRepository _categoryRepository;
         private readonly IBrokerRepository _brokerRepository;
+        private readonly IAssetRepository _assetRepository;
         private readonly IMapper _mapper;
 
         public AssetClassificationsService(ICategoryRepository categoryRepository,
                                            IBrokerRepository brokerRepository,
+                                           IAssetRepository assetRepository,
                                            IMapper mapper)
         {
             _categoryRepository = categoryRepository;
             _brokerRepository = brokerRepository;
+            _assetRepository = assetRepository;
             _mapper = mapper;
         }
 
@@ -130,6 +133,26 @@ namespace AssetManager.Services
         public bool DeleteBroker(string userId, int brokerId)
         {
             return _brokerRepository.DeleteBroker(userId, brokerId);
+        }
+
+        public IEnumerable<ClassificationAssetCount> GetCategoriesAssetCount(string userId)
+        {
+            var categories = GetCategories(userId);
+            return categories.Select(category => new ClassificationAssetCount
+            {
+                AssetCount = _assetRepository.GetAssetsByCategory(userId, category.Id).Sum(asset => asset.Amount),
+                Name = category.Name
+            }).ToList();
+        }
+
+        public IEnumerable<ClassificationAssetCount> GetBrokersAssetCount(string userId)
+        {
+            var brokers = GetBrokers(userId);
+            return brokers.Select(broker => new ClassificationAssetCount
+            {
+                AssetCount = _assetRepository.GetAssetsByBroker(userId, broker.Id).Sum(asset => asset.Amount),
+                Name = broker.Name
+            }).ToList();
         }
     }
 }

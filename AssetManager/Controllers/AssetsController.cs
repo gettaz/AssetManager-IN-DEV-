@@ -67,9 +67,9 @@ namespace AssetManager.Controllers
         }
 
         [HttpGet("{userId}/assets/broker/{broker}")]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<Asset>))]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<AssetDto>))]
 
-        public IActionResult GetAssetsByBroker(string userId, string broker)
+        public IActionResult GetAssetsByBroker(string userId, int broker)
         {
             if (!ModelState.IsValid)
             {

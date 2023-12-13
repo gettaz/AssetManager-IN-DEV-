@@ -69,10 +69,14 @@ namespace AssetManager.Repository
             return userAssets.Where(a => a.DateSold != null).ToList();
         }
 
-        public IEnumerable<Asset> GetAssetsByBroker(string userId, string brokerName)
+        public IEnumerable<Asset> GetAssetsByBroker(string userId, int brokerId)
         {
-            var userAssets = GetUserAssets(userId);
-            return userAssets.Where(a => a?.Broker?.Name == brokerName).ToList();
+            var assetByBroker = _context.Assets.Where(ac => ac.BrokerId == brokerId && ac.UserId == userId).Select(ac => ac).ToList();
+            if (assetByBroker.Any())
+            {
+                return assetByBroker;
+            }
+            return null;
         }
 
         public IEnumerable<Asset> GetAssetsByCategory(string userId, int id)
