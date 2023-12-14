@@ -76,7 +76,7 @@ namespace AssetManager.Repository
             {
                 return assetByBroker;
             }
-            return null;
+            return Enumerable.Empty<Asset>();
         }
 
         public IEnumerable<Asset> GetAssetsByCategory(string userId, int id)
@@ -87,7 +87,7 @@ namespace AssetManager.Repository
             {
                 return assetByCategory;
             }
-            return null;
+            return Enumerable.Empty<Asset>();
         }
         private bool Save()
         {
