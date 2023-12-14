@@ -147,12 +147,8 @@ namespace AssetManager.Services
 
         public IEnumerable<ClassificationAssetCount> GetBrokersAssetCount(string userId)
         {
-            var brokers = GetBrokers(userId);
-            return brokers.Select(broker => new ClassificationAssetCount
-            {
-                AssetCount = _assetRepository.GetAssetsByBroker(userId, broker.Id).Sum(asset => asset.Amount),
-                Name = broker.Name
-            }).ToList();
+            var brokers = _brokerRepository.GetBrokersAssetCount(userId);
+            return brokers;
         }
     }
 }

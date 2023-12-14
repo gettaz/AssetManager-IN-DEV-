@@ -7,8 +7,7 @@ namespace AssetManager.Repository
 {
     public class AssetRepository : IAssetRepository
     {
-        private DataContext _context;
-
+        private readonly DataContext _context;
 
         public AssetRepository(DataContext context)
         {
@@ -19,8 +18,6 @@ namespace AssetManager.Repository
         {
             return _context.Assets
                            .Where(a => a.UserId == userId)
-                           .Include(a => a.Broker) // Eagerly load the Broker
-                           .Include(a => a.Category) // Eagerly load the Category
                            .ToList();
         }
 

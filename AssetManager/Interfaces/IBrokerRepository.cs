@@ -1,4 +1,5 @@
-﻿using AssetManager.Models;
+﻿using AssetManager.DTO;
+using AssetManager.Models;
 
 namespace AssetManager.Interfaces
 {
@@ -6,6 +7,7 @@ namespace AssetManager.Interfaces
     {
         //TODO: search by name in sql- instead of get all
         IEnumerable<Broker> GetUserBrokers(string userId);
+        public IEnumerable<ClassificationAssetCount> GetBrokersAssetCount(string userId);
         bool CreateBroker(Broker broker);
         bool UpdateBroker(Broker broker);
         bool DeleteBroker(string userId, int brokerId);

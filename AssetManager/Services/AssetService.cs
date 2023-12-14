@@ -26,7 +26,7 @@ namespace AssetManager.Services
 
         public IEnumerable<ConsolidatedAssetDto> GetUserAssets(string userId)
         {
-            var assets = _assetRepository.GetUserAssets(userId).Where(asset => asset.DateSold == null);
+            var assets = _assetRepository.GetUserAssets(userId).Where(asset => asset.DateSold == null).AsEnumerable();
 
             var consolidatedAssets = assets
                 .GroupBy(a => new { a.AssetName, BrokerName = a.Broker?.Name, CategoryName = a.Category?.Name })

@@ -1,4 +1,5 @@
 ﻿using AssetManager.Data;
+using AssetManager.DTO;
 using AssetManager.Interfaces;
 using AssetManager.Models;
 using Microsoft.EntityFrameworkCore;
@@ -37,6 +38,19 @@ namespace AssetManager.Repository
         {
             return _context.Brokers
                 .Where(b => b.UserId == userId).ToList();
+        }
+        public IEnumerable<ClassificationAssetCount> GetBrokersAssetCount(string userId)
+        {
+            // Assuming _context is your DbContext
+            return _context.Assets
+                           .Where(asset => asset.UserId == userId && asset.BrokerId != null)
+                           .GroupBy(asset => asset.Broker.Name)
+                           .Select(group => new ClassificationAssetCount
+                           {
+                               Name = group.Key,
+                               AssetCount = group.Sum(asset => asset.Amount)
+                           })
+                           .ToList();
         }
 
         public bool Save()

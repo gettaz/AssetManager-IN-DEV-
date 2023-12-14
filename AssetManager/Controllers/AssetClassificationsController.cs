@@ -22,39 +22,55 @@ namespace AssetManager.Controllers
         [ProducesResponseType(200, Type = typeof(IEnumerable<string>))]
         public IActionResult GetClassifications(string userId, string classificationType)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            IEnumerable<ClassificationDto> classifications = classificationType switch
+            try
             {
-                "broker" => _classificationsService.GetBrokers(userId),
-                "category" => _classificationsService.GetCategories(userId),
-                _ => throw new ArgumentException("Invalid classification type")
-            };
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
 
-            if (classifications.IsNullOrEmpty())
-                return NotFound();
+                IEnumerable<ClassificationDto> classifications = classificationType switch
+                {
+                    "broker" => _classificationsService.GetBrokers(userId),
+                    "category" => _classificationsService.GetCategories(userId),
+                    _ => throw new ArgumentException("Invalid classification type")
+                };
 
-            return Ok(classifications.Select(c=>c.Name).ToList());
+                if (classifications == null || !classifications.Any())
+                    return NotFound();
+
+                return Ok(classifications.Select(c => c.Name).ToList());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error occurred in GetClassifications: {ex.Message}");
+                return StatusCode(500, "An error occurred while processing your request.");
+            }
         }
 
         [HttpGet("{userId}")]
         public IActionResult GetClassificationDistribution(string userId, string classificationType)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            IEnumerable<ClassificationAssetCount> classifications = classificationType switch
+            try
             {
-                "broker" => _classificationsService.GetBrokersAssetCount(userId),
-                "category" => _classificationsService.GetCategoriesAssetCount(userId),
-                _ => throw new ArgumentException("Invalid classification type")
-            };
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
 
-            if (classifications.IsNullOrEmpty())
-                return NotFound();
+                IEnumerable<ClassificationAssetCount> classifications = classificationType switch
+                {
+                    "broker" => _classificationsService.GetBrokersAssetCount(userId),
+                    "category" => _classificationsService.GetCategoriesAssetCount(userId),
+                    _ => throw new ArgumentException("Invalid classification type")
+                };
 
-            return Ok(classifications);
+                if (classifications == null || !classifications.Any())
+                    return NotFound();
+
+                return Ok(classifications);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error occurred in GetClassificationDistribution: {ex.Message}");
+                return StatusCode(500, "An error occurred while processing your request.");
+            }
         }
 
         // Endpoint for creating a classification
