@@ -18,6 +18,8 @@ namespace AssetManager.Repository
         {
             return _context.Assets
                            .Where(a => a.UserId == userId)
+                           .Include(a => a.Broker) // Include the Broker entity
+                           .Include(a => a.Category) // Include the Category entity
                            .ToList();
         }
 
@@ -78,7 +80,7 @@ namespace AssetManager.Repository
 
         public IEnumerable<Asset> GetAssetsByCategory(string userId, int id)
         {
-            var assetByCategory = _context.Assets.Where(ac => ac.Category.Id == id && ac.Category.UserId == userId).Select(ac => ac).ToList();
+            var assetByCategory = _context.Assets.Where(ac => ac.Category.Id == id && ac.Category.UserId == userId).Select(ac => ac).AsEnumerable();
 
             if (assetByCategory.Any())
             {
