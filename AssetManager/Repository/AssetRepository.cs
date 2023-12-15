@@ -16,11 +16,20 @@ namespace AssetManager.Repository
 
         public IEnumerable<Asset> GetUserAssets(string userId)
         {
-            return _context.Assets
+            try
+            {
+
+                return _context.Assets
                            .Where(a => a.UserId == userId)
                            .Include(a => a.Broker) // Include the Broker entity
                            .Include(a => a.Category) // Include the Category entity
                            .ToList();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+
         }
 
         public bool CreateAsset(Asset asset)

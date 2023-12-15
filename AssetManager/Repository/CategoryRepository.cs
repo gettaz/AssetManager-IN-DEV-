@@ -34,8 +34,14 @@ namespace AssetManager.Repository
 
         public IEnumerable<Category> GetUserCategories(string userId)
         {
-            return _context.Categories
-                .Where(c => c.UserId == userId).ToList();
+        try{
+                return _context.Categories
+    .Where(c => c.UserId == userId).ToList();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
 
         public bool Save()

@@ -36,8 +36,14 @@ namespace AssetManager.Repository
 
         public IEnumerable<Broker> GetUserBrokers(string userId)
         {
-            return _context.Brokers
-                .Where(b => b.UserId == userId).ToList();
+            try
+            {
+                return _context.Brokers
+    .Where(b => b.UserId == userId).ToList();
+            }
+            catch (Exception e){
+                throw e;
+            }
         }
         public IEnumerable<ClassificationAssetCount> GetBrokersAssetCount(string userId)
         {
