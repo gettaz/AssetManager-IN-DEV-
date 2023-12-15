@@ -37,14 +37,20 @@ namespace AssetManager.Controllers
             {
                 return BadRequest(ModelState);
             }
-
-            var assets = _assetService.GetUserAssets(userId);
-            if (assets.IsNullOrEmpty())
+            try
             {
-                return NotFound(ModelState);
+                var assets = _assetService.GetUserAssets(userId);
+                if (assets.IsNullOrEmpty())
+                {
+                    return NotFound(ModelState);
+                }
+                return Ok(assets);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(ModelState);
             }
 
-            return Ok(assets);
         }
 
         [HttpGet("{userId}/assets/category/{categoryId}")]

@@ -65,6 +65,7 @@ namespace AssetManager.Controllers
                     return NotFound();
 
                 return Ok(classifications);
+
             }
             catch (Exception ex)
             {
