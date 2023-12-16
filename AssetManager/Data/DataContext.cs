@@ -15,6 +15,7 @@ namespace AssetManager.Data
         public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<Broker> Brokers { get; set; }
         public virtual DbSet<Asset> Assets { get; set; }
+        public virtual DbSet<Price> Prices { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

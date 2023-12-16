@@ -19,10 +19,15 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(MappingProfiles));
 builder.Services.AddScoped<IAssetRepository, AssetRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IPriceRepository, PriceRepository>();
 builder.Services.AddScoped<IBrokerRepository, BrokerRepository>();
 builder.Services.AddScoped<IAssetService, AssetService>();
+builder.Services.AddScoped<IPriceService, PriceService>();
+builder.Services.AddScoped<IPriceProvider, PriceProvider>();
 builder.Services.AddScoped<IAssetClassificationsService, AssetClassificationsService>();
-builder.Services.AddHttpClient();
+//builder.Services.AddHttpClient();
+builder.Services.AddHttpClient<IPriceProvider, PriceProvider>();
+
 builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowAllOrigins",
@@ -69,6 +74,7 @@ var config = new MapperConfiguration(cfg =>
 {
     cfg.AddProfile<MappingProfiles>();
 });
+
 try
 {
     config.AssertConfigurationIsValid();

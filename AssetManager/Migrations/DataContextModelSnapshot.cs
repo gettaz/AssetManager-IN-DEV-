@@ -117,6 +117,22 @@ namespace AssetManager.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("AssetManager.Models.Price", b =>
+                {
+                    b.Property<string>("Ticker")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double>("Value")
+                        .HasColumnType("float");
+
+                    b.HasKey("Ticker");
+
+                    b.ToTable("Prices");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")

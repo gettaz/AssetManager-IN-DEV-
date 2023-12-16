@@ -17,6 +17,7 @@ namespace AssetManager.Helper
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
                 .ForMember(dest => dest.DateBought, opt => opt.MapFrom(src => src.DateBought))
                 .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount));
+
             CreateMap<AssetDto, Asset>()
                 .ForMember(dest => dest.User, opt => opt.Ignore())
                 .ForMember(dest => dest.Category, opt => opt.Ignore())
@@ -25,6 +26,7 @@ namespace AssetManager.Helper
                 .ForMember(dest => dest.BrokerId, opt => opt.Ignore())
                 .ForMember(dest => dest.Broker, opt => opt.Ignore())
                 .ForMember(dest => dest.DateSold, opt => opt.Ignore());
+
             CreateMap<Category, ClassificationDto>();
             CreateMap<Broker, ClassificationDto>();
             CreateMap<ClassificationDto, Category>()
@@ -32,11 +34,10 @@ namespace AssetManager.Helper
                 .ForMember(dest => dest.UserId, opt => opt.Ignore())
                 .ForMember(dest => dest.Assets, opt => opt.Ignore())
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
-            CreateMap<ClassificationDto, Broker>()
-                .ForMember(dest => dest.User, opt => opt.Ignore())
-                .ForMember(dest => dest.UserId, opt => opt.Ignore())
-                .ForMember(dest => dest.Assets, opt => opt.Ignore())
-                .ForMember(dest => dest.Id, opt => opt.Ignore());
+            CreateMap<Price, TimelineSummaryDto>()
+                .ForMember(dest => dest.Prices, opt => opt.MapFrom(src => new List<TimelineDataItem> { new TimelineDataItem { Date = src.Date, Price = src.Value } }))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Ticker));
+
         }
     }
 
