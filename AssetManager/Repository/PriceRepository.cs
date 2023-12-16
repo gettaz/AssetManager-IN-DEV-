@@ -16,7 +16,10 @@ namespace AssetManager.Repository
         }
         public IEnumerable<Price> GetHistoricalPrice(string symbol, string fromDate, string toDate)
         {
-            return _context.Prices.Where(pr => pr.Ticker == symbol).AsEnumerable();
+            DateTime fromDateParsed = DateTime.Parse(fromDate);
+            DateTime toDateParsed = DateTime.Parse(toDate);
+
+            return _context.Prices.Where(pr => pr.Ticker == symbol && pr.Date <= fromDateParsed && pr.Date >= toDateParsed).AsEnumerable();
         }
 
         public bool AddPriceData(string symbol, IEnumerable<Price> priceData)

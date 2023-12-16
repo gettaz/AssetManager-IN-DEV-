@@ -32,9 +32,9 @@ public class PriceService : IPriceService
             fromDateParsed = timelineDataItems.OrderByDescending(td => td.Date).FirstOrDefault().Date;
         }
 
-        if (!timelineDataItems.Any(td => td.Date == toDateParsed))
+        if (fromDateParsed != toDateParsed)
         {
-            var fetchedData = (await _pricesProvider.GetHistoricalPriceAsync(symbol, fromDate, toDate)).Prices.Select(td => new Price
+            var fetchedData = (await _pricesProvider.GetHistoricalPriceAsync(symbol, fromDateParsed.ToString(), toDate)).Prices.Select(td => new Price
             {
                 Date = td.Date,
                 Value = td.Price,
