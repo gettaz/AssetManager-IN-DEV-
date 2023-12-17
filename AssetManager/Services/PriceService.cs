@@ -34,6 +34,7 @@ public class PriceService : IPriceService
         }
         else
         {
+           //TODO: get from a year back in initial insertion 
             dbPrices = (await _pricesProvider.GetHistoricalPriceAsync(symbol, fromDate, toDate)).Prices.Select(td => new Price
             {
                 Date = td.Date,
