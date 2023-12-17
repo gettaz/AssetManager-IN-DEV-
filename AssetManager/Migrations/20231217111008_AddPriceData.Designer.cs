@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AssetManager.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20231216152626_AddPriceData")]
+    [Migration("20231217111008_AddPriceData")]
     partial class AddPriceData
     {
         /// <inheritdoc />
@@ -131,7 +131,7 @@ namespace AssetManager.Migrations
                     b.Property<double>("Value")
                         .HasColumnType("float");
 
-                    b.HasKey("Ticker");
+                    b.HasKey("Ticker", "Date");
 
                     b.ToTable("Prices");
                 });

@@ -6,7 +6,6 @@ namespace AssetManager.Models
 {
     public class Price
     {
-        [Key]
         public string Ticker { get; set; }
 
         public DateTime Date { get; set; }

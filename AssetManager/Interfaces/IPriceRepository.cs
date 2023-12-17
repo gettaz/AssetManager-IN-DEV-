@@ -5,7 +5,7 @@ namespace AssetManager.Repository
 {
     public interface IPriceRepository
     {
-        IEnumerable<Price> GetHistoricalPrice(string symbol, string fromDate, string toDate);
+        IEnumerable<Price> GetHistoricalPrice(string symbol, DateTime fromDate, DateTime toDate);
         bool AddPriceData(string symbol, IEnumerable<Price> priceData);
     }
 }

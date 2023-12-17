@@ -14,17 +14,15 @@ namespace AssetManager.Repository
         {
             _context = context;
         }
-        public IEnumerable<Price> GetHistoricalPrice(string symbol, string fromDate, string toDate)
+        public IEnumerable<Price> GetHistoricalPrice(string symbol, DateTime fromDate, DateTime toDate)
         {
-            DateTime fromDateParsed = DateTime.Parse(fromDate);
-            DateTime toDateParsed = DateTime.Parse(toDate);
-
-            return _context.Prices.Where(pr => pr.Ticker == symbol && pr.Date <= fromDateParsed && pr.Date >= toDateParsed).AsEnumerable();
+            var prices = _context.Prices.Where(pr => pr.Ticker == symbol && pr.Date >= fromDate && pr.Date <= toDate);
+            return prices.ToList();
         }
 
         public bool AddPriceData(string symbol, IEnumerable<Price> priceData)
         {
-            _context.Add(priceData);
+            _context.AddRange(priceData);
             return Save();
         }
 

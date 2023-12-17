@@ -128,7 +128,7 @@ namespace AssetManager.Migrations
                     b.Property<double>("Value")
                         .HasColumnType("float");
 
-                    b.HasKey("Ticker");
+                    b.HasKey("Ticker", "Date");
 
                     b.ToTable("Prices");
                 });

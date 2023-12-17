@@ -13,7 +13,7 @@ public class PriceProvider : IPriceProvider
 
     public async Task<TimelineSummaryDto> GetHistoricalPriceAsync(string symbol, string fromDate, string toDate)
     {
-        var baseUrl = $"https://financialmodelingprep.com/api/v3/historical-price-full/{symbol}";
+        var baseUrl = $"https://financialmodelingprep.com/api/v3/historical-chart/1day/{symbol}";
         var urlWithParams = $"{baseUrl}?from={fromDate}&to={toDate}&apikey=aUV5EG7zNmn6kvp6qpi3qjnh5q0mgltO";
 
         try
@@ -21,12 +21,11 @@ public class PriceProvider : IPriceProvider
             HttpResponseMessage response = await _client.GetAsync(urlWithParams);
             response.EnsureSuccessStatusCode();
             string responseBody = await response.Content.ReadAsStringAsync();
-
-            var jsonObject = JObject.Parse(responseBody);
-            var historicalData = jsonObject["historical"].ToObject<List<JObject>>();
-
             var prices = new List<TimelineDataItem>();
-            foreach (var item in historicalData)
+
+            var jsonObject = JArray.Parse(responseBody);
+
+            foreach (var item in jsonObject)
             {
                 prices.Add(new TimelineDataItem
                 {

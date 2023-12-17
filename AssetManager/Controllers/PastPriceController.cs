@@ -21,6 +21,21 @@ namespace AssetManager.Controllers
         {
             try
             {
+                if (!DateTime.TryParse(fromDate, out DateTime fromDateTime))
+                {
+                    return BadRequest("Invalid 'fromDate' format.");
+                }
+
+                if (!DateTime.TryParse(toDate, out DateTime toDateTime))
+                {
+                    return BadRequest("Invalid 'toDate' format.");
+                }
+
+                if (toDateTime <= fromDateTime)
+                {
+                    return BadRequest("'toDate' must be later than 'fromDate'.");
+                }
+
                 var timelineSummary = await _priceService.GetHistoricalPriceAsync(symbol, fromDate, toDate);
                 if (timelineSummary == null || timelineSummary.Prices.Count() == 0)
                 {

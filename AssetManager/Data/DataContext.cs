@@ -34,6 +34,8 @@ namespace AssetManager.Data
                 .WithMany(b => b.Assets)
                 .HasForeignKey(a => a.BrokerId)
                 .OnDelete(DeleteBehavior.Restrict); // Adjust the delete behavior as needed
+            modelBuilder.Entity<Price>()
+                .HasKey(p => new { p.Ticker, p.Date });
         }
     }
 }
