@@ -3,6 +3,7 @@
     public class TimelineSummaryDto
     {
         public string Name { get; set; }
+        public IEnumerable<TimelineSummaryDto> Components { get; set; } = null;
         public IEnumerable<TimelineDataItem> Prices { get; set; }
     }
 

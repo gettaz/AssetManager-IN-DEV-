@@ -7,6 +7,12 @@ using Microsoft.AspNetCore.Identity;
 using AssetManager.Helper;
 using AutoMapper;
 using AssetManager.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +25,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(MappingProfiles));
 builder.Services.AddScoped<IAssetRepository, AssetRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-builder.Services.AddScoped<IPriceRepository, PriceRepository>();
 builder.Services.AddScoped<IBrokerRepository, BrokerRepository>();
 builder.Services.AddScoped<IAssetService, AssetService>();
 builder.Services.AddScoped<IPriceService, PriceService>();
@@ -47,7 +52,36 @@ builder.Services.AddDbContext<DataContext>(options =>
 });
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<DataContext>();
+var tokenOptions = builder.Configuration.GetSection("TokenOptions").Get<TokenOptions>();
+var key = Encoding.UTF8.GetBytes(tokenOptions.Secret);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidIssuer = tokenOptions.Issuer,
+            ValidAudience = tokenOptions.Audience,
+            ValidateAudience = true,
+            ValidateIssuer = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+        };
+    });
+builder.Services.AddLogging(configure =>
+{
+    configure.AddConsole(); // You can choose a different logging provider here if needed.
+});
+
 var app = builder.Build();
+
+
+
 //
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -84,9 +118,21 @@ catch (Exception e)
     Console.WriteLine(e);
     throw;
 }
-app.UseRouting();
 app.UseCors("AllowAllOrigins");
+// Add a middleware to log token information for debugging purposes
+app.Use(async (context, next) =>
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    var token = context.Request.Headers["Authorization"].ToString();
+    logger.LogInformation($"Received token a: {token}");
+
+    // Call the next middleware in the pipeline
+    await next.Invoke();
+});
 app.UseHttpsRedirection();
+app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
+

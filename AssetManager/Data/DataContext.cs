@@ -15,7 +15,6 @@ namespace AssetManager.Data
         public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<Broker> Brokers { get; set; }
         public virtual DbSet<Asset> Assets { get; set; }
-        public virtual DbSet<Price> Prices { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -34,8 +33,6 @@ namespace AssetManager.Data
                 .WithMany(b => b.Assets)
                 .HasForeignKey(a => a.BrokerId)
                 .OnDelete(DeleteBehavior.Restrict); // Adjust the delete behavior as needed
-            modelBuilder.Entity<Price>()
-                .HasKey(p => new { p.Ticker, p.Date });
         }
     }
 }

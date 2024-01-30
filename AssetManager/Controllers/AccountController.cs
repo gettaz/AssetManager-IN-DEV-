@@ -1,6 +1,10 @@
 ﻿using AssetManager.DTO;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace AssetManager.Controllers
 {
@@ -8,13 +12,15 @@ namespace AssetManager.Controllers
 
     public class AccountController : ControllerBase
     {
+        private readonly IConfiguration _configuration;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
+        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _configuration = configuration;
         }
 
         [HttpPost("register")]
@@ -29,7 +35,6 @@ namespace AssetManager.Controllers
             {
                 user.EmailConfirmed = true; // Add this line to confirm the email
                 await _userManager.UpdateAsync(user); // And this line to save the change
-                await _signInManager.SignInAsync(user, isPersistent: false);
                 return Ok();
             }
 
@@ -52,7 +57,25 @@ namespace AssetManager.Controllers
 
             if (result.Succeeded)
             {
-                return Ok(new { UserId = user.Id });  // Return the user's Id in the response
+                var tokenOptions = _configuration.GetSection("TokenOptions").Get<TokenOptions>();
+                var key = Encoding.UTF8.GetBytes(tokenOptions.Secret);
+
+                var tokenDescriptor = new SecurityTokenDescriptor
+                {
+                    Subject = new ClaimsIdentity(new[]
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, user.Id)
+                     }),
+                    Issuer = tokenOptions.Issuer,
+                    Audience = tokenOptions.Audience,
+                    Expires = DateTime.UtcNow.AddDays(tokenOptions.ExpiryDays),
+                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                };
+
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return Ok(new { token = tokenHandler.WriteToken(token) });
             }
 
             if (result.IsNotAllowed)

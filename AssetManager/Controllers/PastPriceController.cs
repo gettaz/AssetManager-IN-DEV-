@@ -16,30 +16,15 @@ namespace AssetManager.Controllers
             _priceService = priceService;
         }
 
-        [HttpGet("{symbol}")]
-        public async Task<ActionResult<TimelineSummaryDto>> GetPastPrices(string symbol, string fromDate, string toDate)
+        [HttpGet("{userId}")]
+        public async Task<ActionResult<TimelineSummaryDto>> GetPastPrices(string userId)
         {
             try
             {
-                if (!DateTime.TryParse(fromDate, out DateTime fromDateTime))
-                {
-                    return BadRequest("Invalid 'fromDate' format.");
-                }
-
-                if (!DateTime.TryParse(toDate, out DateTime toDateTime))
-                {
-                    return BadRequest("Invalid 'toDate' format.");
-                }
-
-                if (toDateTime <= fromDateTime)
-                {
-                    return BadRequest("'toDate' must be later than 'fromDate'.");
-                }
-
-                var timelineSummary = await _priceService.GetHistoricalPriceAsync(symbol, fromDate, toDate);
+                var timelineSummary = await _priceService.GetHistoricalCategoryPriceAsync(userId);
                 if (timelineSummary == null || timelineSummary.Prices.Count() == 0)
                 {
-                    return NotFound($"No past prices found for symbol {symbol}.");
+                    return NotFound($"No past prices found for symbol {userId}.");
                 }
 
                 return Ok(timelineSummary);
@@ -51,6 +36,5 @@ namespace AssetManager.Controllers
             }
         }
 
-        // ... other methods ...
     }
 }

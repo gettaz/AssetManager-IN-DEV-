@@ -6,10 +6,14 @@ using Microsoft.IdentityModel.Tokens;
 using AssetManager.DTO;
 using AssetManager.DTO.AssetManager.DTO;
 using AssetManager.Repository;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace AssetManager.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class AssetsController : ControllerBase
     {
@@ -27,19 +31,24 @@ namespace AssetManager.Controllers
             _assetService = assetService;
         }
 
-        [HttpGet("{userId}/assets")]
+        [HttpGet("assets")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<AssetDto>))]
         [ProducesResponseType(404)]
 
-        public IActionResult GetAssets(string userId)
+        public IActionResult GetAssets()
         {
+            var userid = this.User.Claims.First().Value;
+            _logger.LogInformation("looginguserId");
+
+            _logger.LogInformation(userid);
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
             try
             {
-                var assets = _assetService.GetUserAssets(userId);
+                var assets = _assetService.GetUserAssets(userid);
                 if (assets.IsNullOrEmpty())
                 {
                     return NotFound(ModelState);

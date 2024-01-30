@@ -34,10 +34,6 @@ namespace AssetManager.Helper
                 .ForMember(dest => dest.UserId, opt => opt.Ignore())
                 .ForMember(dest => dest.Assets, opt => opt.Ignore())
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
-            CreateMap<Price, TimelineSummaryDto>()
-                .ForMember(dest => dest.Prices, opt => opt.MapFrom(src => new List<TimelineDataItem> { new TimelineDataItem { Date = src.Date, Price = src.Value } }))
-                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Ticker));
-
         }
     }
 

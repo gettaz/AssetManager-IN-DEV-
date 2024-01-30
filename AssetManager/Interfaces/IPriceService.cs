@@ -1,7 +1,6 @@
 ﻿using AssetManager.DTO;
-using System.Threading.Tasks;
 
 public interface IPriceService
 {
-    Task<TimelineSummaryDto> GetHistoricalPriceAsync(string symbol, string fromDate, string toDate);
+    Task<TimelineSummaryDto> GetHistoricalCategoryPriceAsync(string userId);
 }

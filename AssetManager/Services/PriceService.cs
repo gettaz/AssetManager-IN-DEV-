@@ -2,92 +2,83 @@
 using AssetManager.Interfaces;
 using AssetManager.Models;
 using AssetManager.Repository;
+using System.Linq;
 
 public class PriceService : IPriceService
 {
     private readonly IPriceProvider _pricesProvider;
-    private readonly IPriceRepository _priceRepository;
+    private readonly IAssetRepository _assetRepository;
+    private readonly ICategoryRepository _categoryRepository;
 
-    public PriceService(IPriceProvider pricesProvider, IPriceRepository priceRepository)
+    public PriceService(IPriceProvider pricesProvider, IAssetRepository assetRepository, ICategoryRepository categoryRepository)
     {
         _pricesProvider = pricesProvider;
-        _priceRepository = priceRepository;
+        _assetRepository = assetRepository;
+        _categoryRepository = categoryRepository;
     }
 
-    public async Task<TimelineSummaryDto> GetHistoricalPriceAsync(string symbol, string fromDate, string toDate)
+    private async Task<List<TimelineDataItem>> GetHistoricalStockPriceAsync(string symbol)
     {
-        var toDateParsed = DateTime.Parse(toDate);
-        var fromDateParsed = DateTime.Parse(fromDate);
-        var cachedData = _priceRepository.GetHistoricalPrice(symbol, fromDateParsed, toDateParsed);
-        IEnumerable<Price> dbPrices = Array.Empty<Price>();
-        IEnumerable<Price> fetchedData = Array.Empty<Price>();
+        var toDate = DateTime.Now;
+        var fromDate = DateTime.Now.AddDays(-365);
 
-        var dbToDate = DateTime.Now.AddDays(-365);
-        var dbFromDate = DateTime.Now;
+        return (await _pricesProvider.GetHistoricalPriceAsync(symbol, fromDate.ToString("yyyy-MM-dd"), toDate.ToString("yyyy-MM-dd"))).ToList();
+    }
 
-        if (cachedData != null && cachedData.Any())
+    public async Task<TimelineSummaryDto> GetHistoricalCategoryPriceAsync(string userId)
+    {
+        var categories = _categoryRepository.GetUserCategories(userId);
+        var overallAggregatedPrices = new Dictionary<DateTime, double>();
+        var categorySummaries = new List<TimelineSummaryDto>();
+
+        foreach (var category in categories)
         {
-            dbPrices = cachedData.OrderByDescending(td => td.Date);
+            var assets = _assetRepository.GetAssetsByCategory(userId, category.Id);
+            var categoryAggregatedPrices = new Dictionary<DateTime, double>();
 
-            dbToDate = dbPrices.FirstOrDefault().Date;
-            dbFromDate = dbPrices.LastOrDefault().Date;
-        }
-        else
-        {
-           //TODO: get from a year back in initial insertion 
-            dbPrices = (await _pricesProvider.GetHistoricalPriceAsync(symbol, fromDate, toDate)).Prices.Select(td => new Price
+            foreach (var asset in assets)
             {
-                Date = td.Date,
-                Value = td.Price,
-                Ticker = symbol
-            }).ToList();
-            _priceRepository.AddPriceData(symbol, dbPrices);
-            dbFromDate = DateTime.Parse(fromDate);
-            dbToDate = DateTime.Parse(toDate);
-
-            return new TimelineSummaryDto
-            {
-                Name = symbol,
-                Prices = dbPrices.Select(pr => new TimelineDataItem
+                var assetPrices = await GetHistoricalStockPriceAsync(asset.Ticker);
+                foreach (var priceItem in assetPrices)
                 {
-                    Date = pr.Date,
-                    Price = pr.Value
-                }).ToList()
-            };
-        }
+                    if (!categoryAggregatedPrices.ContainsKey(priceItem.Date))
+                    {
+                        categoryAggregatedPrices[priceItem.Date] = 0;
+                    }
+                    categoryAggregatedPrices[priceItem.Date] += priceItem.Price;
 
-        if (!(dbFromDate <= fromDateParsed))
-        {
-            fetchedData = (await _pricesProvider.GetHistoricalPriceAsync(symbol, fromDateParsed.ToString("yyyy-MM-dd"), dbFromDate.AddDays(-1).ToString("yyyy-MM-dd"))).Prices.Select(td => new Price
+                    if (!overallAggregatedPrices.ContainsKey(priceItem.Date))
+                    {
+                        overallAggregatedPrices[priceItem.Date] = 0;
+                    }
+                    overallAggregatedPrices[priceItem.Date] += priceItem.Price;
+                }
+            }
+
+            var categoryTimelineItems = categoryAggregatedPrices.Select(kvp => new TimelineDataItem
             {
-                Date = td.Date,
-                Value = td.Price,
-                Ticker = symbol
+                Date = kvp.Key,
+                Price = kvp.Value
             }).ToList();
-            _priceRepository.AddPriceData(symbol, fetchedData);
-        }
 
-        if (!(dbToDate >= toDateParsed))
-        {
-            fetchedData = (await _pricesProvider.GetHistoricalPriceAsync(symbol, dbToDate.AddDays(1).ToString("yyyy-MM-dd"), toDateParsed.ToString("yyyy-MM-dd"))).Prices.Select(td => new Price
+            categorySummaries.Add(new TimelineSummaryDto
             {
-                Date = td.Date,
-                Value = td.Price,
-                Ticker = symbol
-            }).ToList();
-            _priceRepository.AddPriceData(symbol, fetchedData);
+                Name = category.Name,
+                Prices = categoryTimelineItems
+            });
         }
 
-        var allPrices = dbPrices.Concat(fetchedData);
+        var overallTimelineItems = overallAggregatedPrices.Select(kvp => new TimelineDataItem
+        {
+            Date = kvp.Key,
+            Price = kvp.Value
+        }).ToList();
 
         return new TimelineSummaryDto
         {
-            Name = symbol,
-            Prices = allPrices.Select(pr => new TimelineDataItem
-            {
-                Date = pr.Date,
-                Price = pr.Value
-            }).ToList()
+            Name = "all",
+            Prices = overallTimelineItems,
+            Components = categorySummaries
         };
     }
 }

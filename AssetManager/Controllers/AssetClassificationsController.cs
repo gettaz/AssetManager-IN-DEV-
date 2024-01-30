@@ -1,7 +1,6 @@
 ﻿using AssetManager.DTO;
 using AssetManager.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 
 namespace AssetManager.Controllers
 {
@@ -18,7 +17,7 @@ namespace AssetManager.Controllers
         }
 
         // Combined endpoint for getting either categories or brokers
-        [HttpGet("{userId}/classifications")]
+        [HttpGet("{userId}/classification")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<string>))]
         public IActionResult GetClassifications(string userId, string classificationType)
         {
@@ -46,7 +45,7 @@ namespace AssetManager.Controllers
             }
         }
 
-        [HttpGet("{userId}")]
+        [HttpGet("{userId}/distribution")]
         public IActionResult GetClassificationDistribution(string userId, string classificationType)
         {
             try

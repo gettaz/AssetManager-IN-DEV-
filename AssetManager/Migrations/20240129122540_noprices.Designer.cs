@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AssetManager.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20231217111008_AddPriceData")]
-    partial class AddPriceData
+    [Migration("20240129122540_noprices")]
+    partial class noprices
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -118,22 +118,6 @@ namespace AssetManager.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Categories");
-                });
-
-            modelBuilder.Entity("AssetManager.Models.Price", b =>
-                {
-                    b.Property<string>("Ticker")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<double>("Value")
-                        .HasColumnType("float");
-
-                    b.HasKey("Ticker", "Date");
-
-                    b.ToTable("Prices");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

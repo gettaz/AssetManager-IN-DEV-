@@ -17,27 +17,7 @@ namespace AssetManager
 
         public void SeedDataContext()
         {
-            if (!context.Prices.Any())
-            {
-                var prices = new List<Price>
-             {
-                new Price
-                {
-                    Ticker = "AAPL",
-                    Date = new DateTime(2021, 1, 1),
-                    Value = 150.0
-                },
-                new Price
-                {
-                    Ticker = "MSFT",
-                    Date = new DateTime(2021, 2, 1),
-                    Value = 200.0
-                },
-            };
-                // Add more Price objects here as needed.
-                context.Prices.AddRange(prices);
-            }
-                if (!context.Assets.Any())
+            if (!context.Assets.Any())
             {
                 var user1 = new IdentityUser { UserName = "User1" };
                 var user2 = new IdentityUser { UserName = "User2" };

@@ -1,5 +1,6 @@
 ﻿using AssetManager.DTO;
 using AssetManager.Interfaces;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 public class PriceProvider : IPriceProvider
@@ -11,9 +12,9 @@ public class PriceProvider : IPriceProvider
         _client = client;
     }
 
-    public async Task<TimelineSummaryDto> GetHistoricalPriceAsync(string symbol, string fromDate, string toDate)
+    public async Task<IEnumerable<TimelineDataItem>> GetHistoricalPriceAsync(string symbol, string fromDate, string toDate)
     {
-        var baseUrl = $"https://financialmodelingprep.com/api/v3/historical-chart/1day/{symbol}";
+        var baseUrl = $"https://financialmodelingprep.com/api/v3/historical-price-full/{symbol}";
         var urlWithParams = $"{baseUrl}?from={fromDate}&to={toDate}&apikey=aUV5EG7zNmn6kvp6qpi3qjnh5q0mgltO";
 
         try
@@ -22,10 +23,11 @@ public class PriceProvider : IPriceProvider
             response.EnsureSuccessStatusCode();
             string responseBody = await response.Content.ReadAsStringAsync();
             var prices = new List<TimelineDataItem>();
+            var jsobjon = (JObject)JsonConvert.DeserializeObject(responseBody);
 
-            var jsonObject = JArray.Parse(responseBody);
+            var pricesArray = jsobjon["historical"];
 
-            foreach (var item in jsonObject)
+            foreach (var item in pricesArray)
             {
                 prices.Add(new TimelineDataItem
                 {
@@ -34,11 +36,7 @@ public class PriceProvider : IPriceProvider
                 });
             }
 
-            return new TimelineSummaryDto
-            {
-                Name = symbol,
-                Prices = prices
-            };
+            return prices;
         }
         catch (HttpRequestException e)
         {
