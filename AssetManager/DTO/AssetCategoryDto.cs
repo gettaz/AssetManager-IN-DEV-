@@ -1,11 +1,15 @@
-﻿namespace AssetManager.DTO
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AssetManager.DTO
 {
     namespace AssetManager.DTO
     {
         public class AssetCategoryDto
         {
-            public string UserId { get; set; }
+            [Required(ErrorMessage = "AssetId is required")]
             public int AssetId { get; set; }
+
+            [Required(ErrorMessage = "CategoryId is required")]
             public int CategoryId { get; set; }
         }
     }

@@ -10,18 +10,48 @@ using AssetManager.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.OpenApi.Models;
+using ActionFilters.Filters;
+using AssetManager.ActionFilers.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddTransient<Seed>();
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ActionFilterSetUserId>();
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c => {
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "JWTToken_Auth_API",
+        Version = "v1"
+    });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 1safsfsdfdfd\"",
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+        {
+            new OpenApiSecurityScheme {
+                Reference = new OpenApiReference {
+                    Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
+builder.Services.AddSession();
 builder.Services.AddAutoMapper(typeof(MappingProfiles));
 builder.Services.AddScoped<IAssetRepository, AssetRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
@@ -30,8 +60,8 @@ builder.Services.AddScoped<IAssetService, AssetService>();
 builder.Services.AddScoped<IPriceService, PriceService>();
 builder.Services.AddScoped<IPriceProvider, PriceProvider>();
 builder.Services.AddScoped<IAssetClassificationsService, AssetClassificationsService>();
-//builder.Services.AddHttpClient();
 builder.Services.AddHttpClient<IPriceProvider, PriceProvider>();
+builder.Services.AddScoped<ExceptionFilter>();
 
 builder.Services.AddCors(options =>
     {
@@ -119,6 +149,7 @@ catch (Exception e)
     throw;
 }
 app.UseCors("AllowAllOrigins");
+
 // Add a middleware to log token information for debugging purposes
 app.Use(async (context, next) =>
 {
@@ -134,5 +165,6 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.UseSession();
 app.Run();
 

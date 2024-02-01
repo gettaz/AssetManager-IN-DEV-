@@ -1,9 +1,12 @@
 ﻿using AssetManager.DTO;
 using AssetManager.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static AssetManager.Helper.UserIdExtractor;
 
 namespace AssetManager.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     public class AssetClassificationsController : Controller
     {
@@ -16,10 +19,9 @@ namespace AssetManager.Controllers
             _classificationsService = classificationsService;
         }
 
-        // Combined endpoint for getting either categories or brokers
-        [HttpGet("{userId}/classification")]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<string>))]
-        public IActionResult GetClassifications(string userId, string classificationType)
+        [HttpGet("classification")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<string>))] // TODO shouldnt have logic move the twitchcase to middleware
+        public IActionResult GetClassifications([FromQuery] string classificationType)
         {
             try
             {
@@ -28,8 +30,8 @@ namespace AssetManager.Controllers
 
                 IEnumerable<ClassificationDto> classifications = classificationType switch
                 {
-                    "broker" => _classificationsService.GetBrokers(userId),
-                    "category" => _classificationsService.GetCategories(userId),
+                    "broker" => _classificationsService.GetBrokers(UserIdExtract()),
+                    "category" => _classificationsService.GetCategories(UserIdExtract()),
                     _ => throw new ArgumentException("Invalid classification type")
                 };
 
@@ -45,8 +47,8 @@ namespace AssetManager.Controllers
             }
         }
 
-        [HttpGet("{userId}/distribution")]
-        public IActionResult GetClassificationDistribution(string userId, string classificationType)
+        [HttpGet("distribution")]
+        public IActionResult GetClassificationDistribution([FromQuery] string classificationType)
         {
             try
             {
@@ -55,8 +57,8 @@ namespace AssetManager.Controllers
 
                 IEnumerable<ClassificationAssetCount> classifications = classificationType switch
                 {
-                    "broker" => _classificationsService.GetBrokersAssetCount(userId),
-                    "category" => _classificationsService.GetCategoriesAssetCount(userId),
+                    "broker" => _classificationsService.GetBrokersAssetCount(UserIdExtract()),
+                    "category" => _classificationsService.GetCategoriesAssetCount(UserIdExtract()),
                     _ => throw new ArgumentException("Invalid classification type")
                 };
 
@@ -74,16 +76,16 @@ namespace AssetManager.Controllers
         }
 
         // Endpoint for creating a classification
-        [HttpPost("{userId}")]
-        public IActionResult CreateClassification(string userId, string classificationType, [FromBody] ClassificationDto classification)
+        [HttpPost("create")]
+        public IActionResult CreateClassification([FromQuery] string classificationType, [FromBody] ClassificationDto classification)
         {
             if (classification == null || !ModelState.IsValid)
                 return BadRequest(ModelState);
 
             bool success = classificationType switch
             {
-                "broker" => _classificationsService.CreateBroker(userId, classification),
-                "category" => _classificationsService.CreateCategory(userId, classification),
+                "broker" => _classificationsService.CreateBroker(UserIdExtract(), classification),
+                "category" => _classificationsService.CreateCategory(UserIdExtract(), classification),
                 _ => throw new ArgumentException("Invalid classification type")
             };
 
@@ -97,16 +99,16 @@ namespace AssetManager.Controllers
         }
 
         // Endpoint for updating a classification
-        [HttpPost("{userId}/update")]
-        public IActionResult UpdateClassification(string userId, string classificationType, [FromBody] ClassificationDto classification)
+        [HttpPost("update")]
+        public IActionResult UpdateClassification(string classificationType, [FromBody] ClassificationDto classification)
         {
             if (classification == null || !ModelState.IsValid)
                 return BadRequest(ModelState);
 
             bool success = classificationType switch
             {
-                "broker" => _classificationsService.UpdateBroker(userId, classification),
-                "category" => _classificationsService.UpdateCategory(userId, classification),
+                "broker" => _classificationsService.UpdateBroker(UserIdExtract(), classification),
+                "category" => _classificationsService.UpdateCategory(UserIdExtract(), classification),
                 _ => throw new ArgumentException("Invalid classification type")
             };
 
@@ -120,16 +122,16 @@ namespace AssetManager.Controllers
         }
 
         // Endpoint for deleting a classification
-        [HttpDelete("{userId}/{classificationId}")]
-        public IActionResult RemoveClassification(string userId, int classificationId, string classificationType)
+        [HttpDelete("delete")]
+        public IActionResult RemoveClassification(int classificationId, [FromQuery] string classificationType)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             bool success = classificationType switch
             {
-                "broker" => _classificationsService.DeleteBroker(userId, classificationId),
-                "category" => _classificationsService.DeleteCategory(userId, classificationId),
+                "broker" => _classificationsService.DeleteBroker(UserIdExtract(), classificationId),
+                "category" => _classificationsService.DeleteCategory(UserIdExtract(), classificationId),
                 _ => throw new ArgumentException("Invalid classification type")
             };
 
@@ -140,6 +142,10 @@ namespace AssetManager.Controllers
             }
 
             return Ok("Successfully removed");
+        }
+        private string UserIdExtract()
+        {
+            return HttpContext.Items["UserId"] as string;
         }
     }
 }

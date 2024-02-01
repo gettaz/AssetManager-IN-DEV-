@@ -1,8 +1,5 @@
 ﻿using AssetManager.DTO;
 using AssetManager.Interfaces;
-using AssetManager.Models;
-using AssetManager.Repository;
-using System.Linq;
 
 public class PriceService : IPriceService
 {

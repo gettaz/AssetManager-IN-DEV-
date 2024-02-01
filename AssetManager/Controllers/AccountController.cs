@@ -1,4 +1,5 @@
-﻿using AssetManager.DTO;
+﻿using AssetManager.ActionFilers.Filters;
+using AssetManager.DTO;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -8,8 +9,8 @@ using System.Text;
 
 namespace AssetManager.Controllers
 {
+    [ServiceFilter(typeof(ExceptionFilter))]
     [Route("api/[controller]")]
-
     public class AccountController : ControllerBase
     {
         private readonly IConfiguration _configuration;

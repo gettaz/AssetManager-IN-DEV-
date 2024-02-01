@@ -5,16 +5,15 @@ using AutoMapper;
 using Microsoft.IdentityModel.Tokens;
 using AssetManager.DTO;
 using AssetManager.DTO.AssetManager.DTO;
-using AssetManager.Repository;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using AssetManager.ActionFilers.Filters;
 
 namespace AssetManager.Controllers
 {
     [Route("api/[controller]")]
     [Authorize]
     [ApiController]
+    [ServiceFilter(typeof(ExceptionFilter))]
     public class AssetsController : ControllerBase
     {
         private readonly ILogger<AssetsController> _logger;
@@ -22,6 +21,7 @@ namespace AssetManager.Controllers
         private readonly ICategoryRepository _categoryRepository;
         private readonly IMapper _mapper;
         private readonly IAssetService _assetService;
+
         public AssetsController(ILogger<AssetsController> logger, IAssetRepository assetRepository, ICategoryRepository categoryRepository, IMapper mapper, IAssetService assetService)
         {
             _logger = logger;
@@ -34,13 +34,8 @@ namespace AssetManager.Controllers
         [HttpGet("assets")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<AssetDto>))]
         [ProducesResponseType(404)]
-
         public IActionResult GetAssets()
         {
-            var userid = this.User.Claims.First().Value;
-            _logger.LogInformation("looginguserId");
-
-            _logger.LogInformation(userid);
 
             if (!ModelState.IsValid)
             {
@@ -48,7 +43,7 @@ namespace AssetManager.Controllers
             }
             try
             {
-                var assets = _assetService.GetUserAssets(userid);
+                var assets = _assetService.GetUserAssets(UserIdExtract());
                 if (assets.IsNullOrEmpty())
                 {
                     return NotFound(ModelState);
@@ -62,17 +57,18 @@ namespace AssetManager.Controllers
 
         }
 
-        [HttpGet("{userId}/assets/category/{categoryId}")]
+        [HttpGet("assets/category")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<AssetDto>))]
 
-        public IActionResult GetAssetsByCategory(string userId, int categoryId)
+        public IActionResult GetAssetsByCategory(int categoryId)
         {
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var assets = _assetRepository.GetAssetsByCategory(userId, categoryId);
+            var assets = _assetRepository.GetAssetsByCategory(UserIdExtract(), categoryId);
             if (assets.IsNullOrEmpty())
             {
                 return NotFound(ModelState);
@@ -81,17 +77,18 @@ namespace AssetManager.Controllers
             return Ok(assets);
         }
 
-        [HttpGet("{userId}/assets/broker/{broker}")]
+        [HttpGet("assets/broker")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<AssetDto>))]
 
-        public IActionResult GetAssetsByBroker(string userId, int broker)
+        public IActionResult GetAssetsByBroker(int brokerId)
         {
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var assets = _assetRepository.GetAssetsByBroker(userId, broker);
+            var assets = _assetRepository.GetAssetsByBroker(UserIdExtract(), brokerId);
 
             if (assets.IsNullOrEmpty())
             {
@@ -101,17 +98,18 @@ namespace AssetManager.Controllers
             return Ok(assets);
         }
 
-        [HttpGet("{userId}/assets/past")]
+        [HttpGet("assets/past")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<Asset>))]
 
-        public IActionResult GetPastHoldings(string userId)
+        public IActionResult GetPastHoldings()
         {
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var assets = _assetRepository.GetPastHoldings(userId);
+            var assets = _assetRepository.GetPastHoldings(UserIdExtract());
 
             if (assets.IsNullOrEmpty())
             {
@@ -132,7 +130,7 @@ namespace AssetManager.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (!_assetService.CreateAsset(asset))
+            if (!_assetService.CreateAsset(asset, UserIdExtract()))
             {
                 ModelState.AddModelError("", "Something went wrong while saving");
                 return StatusCode(500, ModelState);
@@ -146,13 +144,14 @@ namespace AssetManager.Controllers
         [ProducesResponseType(400)]
         public IActionResult UpdateAsset([FromBody] AssetDto assetDto)
         {
+
             if (assetDto == null)
                 return BadRequest(ModelState);
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var assetToChange = _assetRepository.GetUserAssets(assetDto.UserId).Where(ass => ass.Id == assetDto.Id).FirstOrDefault();
+            var assetToChange = _assetRepository.GetUserAssets(UserIdExtract()).Where(ass => ass.Id == assetDto.Id).FirstOrDefault();
 
             if (assetToChange == null)
             {
@@ -160,7 +159,7 @@ namespace AssetManager.Controllers
                 return NotFound(ModelState);
             }
 
-            if (assetToChange.UserId != assetDto.UserId)
+            if (assetToChange.UserId != UserIdExtract())
             {
                 ModelState.AddModelError("", "User doesn't have the right to modify this asset");
                 return Unauthorized(ModelState);
@@ -189,14 +188,15 @@ namespace AssetManager.Controllers
         [ProducesResponseType(400)]
         public IActionResult AddAssetCategory([FromBody] AssetCategoryDto assetCategoryDto)
         {
+
             if (assetCategoryDto == null)
                 return BadRequest(ModelState);
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var asset = _assetRepository.GetUserAssets(assetCategoryDto.UserId).FirstOrDefault(a => a.Id == assetCategoryDto.AssetId);
-            var category = _categoryRepository.GetUserCategories(assetCategoryDto.UserId).FirstOrDefault(c => c.Id == assetCategoryDto.CategoryId);
+            var asset = _assetRepository.GetUserAssets(UserIdExtract()).FirstOrDefault(a => a.Id == assetCategoryDto.AssetId);
+            var category = _categoryRepository.GetUserCategories(UserIdExtract()).FirstOrDefault(c => c.Id == assetCategoryDto.CategoryId);
 
             if (asset == null || category == null)
             {
@@ -204,7 +204,7 @@ namespace AssetManager.Controllers
                 return NotFound(ModelState);
             }
 
-            if (!_assetRepository.UpdateCategory(assetCategoryDto.UserId, assetCategoryDto.AssetId, assetCategoryDto.CategoryId))
+            if (!_assetRepository.UpdateCategory(UserIdExtract(), assetCategoryDto.AssetId, assetCategoryDto.CategoryId))
             {
                 ModelState.AddModelError("", "Something went wrong while adding asset to category");
                 return StatusCode(500, ModelState);
@@ -224,7 +224,7 @@ namespace AssetManager.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var asset = _assetRepository.GetUserAssets(assetCategoryDto.UserId).FirstOrDefault(a => a.Id == assetCategoryDto.AssetId);
+            var asset = _assetRepository.GetUserAssets(UserIdExtract()).FirstOrDefault(a => a.Id == assetCategoryDto.AssetId);
 
             if (asset == null || asset.Category == null)
             {
@@ -232,7 +232,7 @@ namespace AssetManager.Controllers
                 return NotFound(ModelState);
             }
 
-            if (!_assetRepository.RemoveAssetCategory(assetCategoryDto.UserId, assetCategoryDto.AssetId))
+            if (!_assetRepository.RemoveAssetCategory(UserIdExtract(), assetCategoryDto.AssetId))
             {
                 ModelState.AddModelError("", "Something went wrong while adding asset to category");
                 return StatusCode(500, ModelState);
@@ -241,21 +241,28 @@ namespace AssetManager.Controllers
             return Ok("Successfully removed asset from category");
         }
 
-        [HttpDelete("{userId}/assets/{assetId}")]
+        [HttpDelete("assets/{assetId}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult RemoveAsset(string userId, int assetId)
+        public IActionResult RemoveAsset(int assetId)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (!_assetRepository.DeleteAsset(userId, assetId))
+            if (!_assetRepository.DeleteAsset(UserIdExtract(), assetId))
             {
                 ModelState.AddModelError("", "Something went wrong while saving");
                 return StatusCode(500, ModelState);
             }
 
             return Ok("Successfully removed");
+        }
+
+        private string UserIdExtract()
+        {
+            var res1 = HttpContext.Items["UserId"];
+            var res = HttpContext.Items["UserId"] as string;
+            return res;
         }
     }
     }

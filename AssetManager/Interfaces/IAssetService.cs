@@ -7,7 +7,7 @@ namespace AssetManager.Interfaces
     {
         IEnumerable<ConsolidatedAssetDto> GetUserAssets(string userId);
 
-        bool CreateAsset(AssetDto assetDto);
+        bool CreateAsset(AssetDto assetDto, string userId);
 
     }
 }

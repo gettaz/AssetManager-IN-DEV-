@@ -9,7 +9,6 @@ namespace AssetManager.Helper
         public MappingProfiles()
         {
             CreateMap<Asset, AssetDto>()
-                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
                 .ForMember(dest => dest.AssetName, opt => opt.MapFrom(src => src.AssetName))
                 .ForMember(dest => dest.Ticker, opt => opt.MapFrom(src => src.Ticker))
                 .ForMember(dest => dest.PurchasePrice, opt => opt.MapFrom(src => src.PriceBought))
@@ -25,7 +24,8 @@ namespace AssetManager.Helper
                 .ForMember(dest => dest.CategoryId, opt => opt.Ignore())
                 .ForMember(dest => dest.BrokerId, opt => opt.Ignore())
                 .ForMember(dest => dest.Broker, opt => opt.Ignore())
-                .ForMember(dest => dest.DateSold, opt => opt.Ignore());
+                .ForMember(dest => dest.DateSold, opt => opt.Ignore())
+                .ForMember(dest => dest.UserId, opt => opt.Ignore());
 
             CreateMap<Category, ClassificationDto>();
             CreateMap<Broker, ClassificationDto>();

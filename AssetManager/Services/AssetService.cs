@@ -45,30 +45,31 @@ namespace AssetManager.Services
             return consolidatedAssets;
         }
 
-        public bool CreateAsset(AssetDto assetDto)
+        public bool CreateAsset(AssetDto assetDto, string userId)
         {
             if (assetDto == null)
             {
-                return false; // Indicate failure, assetDto is null
+                return false; 
             }
             var asset = _mapper.Map<Asset>(assetDto);
 
-            asset.Category = GetClassification(assetDto.UserId, assetDto.CategoryName,
-                _categoryRepository.GetUserCategories(assetDto.UserId));
+            asset.UserId = userId;
+            asset.Category = GetClassification(assetDto.CategoryName,
+                _categoryRepository.GetUserCategories(userId));
 
-            asset.Broker = GetClassification(assetDto.UserId, assetDto.BrokerName,
-            _brokerRepository.GetUserBrokers(assetDto.UserId));
+            asset.Broker = GetClassification(assetDto.BrokerName,
+                _brokerRepository.GetUserBrokers(userId));
 
             if (asset.Category == null && assetDto.CategoryName != null)
             {
-                var category = new Category() { Name = assetDto.CategoryName, UserId = assetDto.UserId };
+                var category = new Category() { Name = assetDto.CategoryName, UserId = userId };
                 _categoryRepository.CreateCategory(category);
                 asset.Category = category;
             }
 
             if (asset.Broker == null && assetDto.BrokerName != null)
             {
-                var broker = new Broker() { Name = assetDto.BrokerName, UserId = assetDto.UserId };
+                var broker = new Broker() { Name = assetDto.BrokerName, UserId = userId };
                 _brokerRepository.CreateBroker(broker);
                 asset.Broker = broker;
             }
@@ -76,7 +77,7 @@ namespace AssetManager.Services
             return _assetRepository.CreateAsset(asset);
         }
 
-        private T? GetClassification<T>(string userId, string name, IEnumerable<T> classifications) where T : Classification
+        private T? GetClassification<T>(string name, IEnumerable<T> classifications) where T : Classification
         {
             return classifications
                        .FirstOrDefault(cla => cla.Name == name);
