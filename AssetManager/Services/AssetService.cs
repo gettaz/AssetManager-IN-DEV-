@@ -23,8 +23,19 @@ namespace AssetManager.Services
             _brokerRepository = brokerRepository;
             _mapper = mapper;
         }
+        public IEnumerable<AssetDto> GetUserAssets(string userId)
+        {
+            var assets = _assetRepository.GetUserAssets(userId).Where(asset => asset.DateSold == null).AsEnumerable();
+            var result = new List<AssetDto>();
+            
+            foreach (var asset in assets) 
+            {
+                result.Add(_mapper.Map<AssetDto>(asset));
+            }
 
-        public IEnumerable<ConsolidatedAssetDto> GetUserAssets(string userId)
+            return result;
+        }
+        public IEnumerable<ConsolidatedAssetDto> GetUserConsolidatedAssets(string userId)
         {
             var assets = _assetRepository.GetUserAssets(userId).Where(asset => asset.DateSold == null).AsEnumerable();
 

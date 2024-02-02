@@ -5,7 +5,10 @@ namespace AssetManager.Interfaces
 {
     public interface IAssetService
     {
-        IEnumerable<ConsolidatedAssetDto> GetUserAssets(string userId);
+        IEnumerable<ConsolidatedAssetDto> GetUserConsolidatedAssets(string userId);
+
+        IEnumerable<AssetDto> GetUserAssets(string userId);
+
 
         bool CreateAsset(AssetDto assetDto, string userId);
 

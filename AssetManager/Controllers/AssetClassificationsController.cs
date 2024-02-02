@@ -1,4 +1,5 @@
-﻿using AssetManager.DTO;
+﻿using AssetManager.ActionFilers.Filters;
+using AssetManager.DTO;
 using AssetManager.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +9,8 @@ namespace AssetManager.Controllers
 {
     [Authorize]
     [Route("api/[controller]")]
+    [ServiceFilter(typeof(ExceptionFilter))]
+
     public class AssetClassificationsController : Controller
     {
         private readonly ILogger<AssetClassificationsController> _logger;
@@ -20,7 +23,7 @@ namespace AssetManager.Controllers
         }
 
         [HttpGet("classification")]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<string>))] // TODO shouldnt have logic move the twitchcase to middleware
+        [ProducesResponseType(200, Type = typeof(IEnumerable<string>))]
         public IActionResult GetClassifications([FromQuery] string classificationType)
         {
             try

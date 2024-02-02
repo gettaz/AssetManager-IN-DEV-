@@ -34,7 +34,33 @@ namespace AssetManager.Controllers
         [HttpGet("assets")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<AssetDto>))]
         [ProducesResponseType(404)]
-        public IActionResult GetAssets()
+        public IActionResult GetUserConsolidatedAssets()
+        {
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                var assets = _assetService.GetUserConsolidatedAssets(UserIdExtract());
+                if (assets.IsNullOrEmpty())
+                {
+                    return NotFound(ModelState);
+                }
+                return Ok(assets);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(ModelState);
+            }
+
+        }
+
+        [HttpGet("assets/all")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<AssetDto>))]
+        [ProducesResponseType(404)]
+        public IActionResult GetUserAssets()
         {
 
             if (!ModelState.IsValid)
@@ -56,7 +82,6 @@ namespace AssetManager.Controllers
             }
 
         }
-
         [HttpGet("assets/category")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<AssetDto>))]
 
