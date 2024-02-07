@@ -3,13 +3,15 @@ using AssetManager.Interfaces;
 
 public class PriceService : IPriceService
 {
-    private readonly IPriceProvider _pricesProvider;
+    private readonly IHistoricalPriceProvider _pricesProvider;
+    private readonly ICurrentPriceProvider _currPricesProvider;
     private readonly IAssetRepository _assetRepository;
     private readonly ICategoryRepository _categoryRepository;
 
-    public PriceService(IPriceProvider pricesProvider, IAssetRepository assetRepository, ICategoryRepository categoryRepository)
+    public PriceService(IHistoricalPriceProvider pricesProvider, ICurrentPriceProvider currPricesProvider, IAssetRepository assetRepository, ICategoryRepository categoryRepository)
     {
         _pricesProvider = pricesProvider;
+        _currPricesProvider = currPricesProvider;
         _assetRepository = assetRepository;
         _categoryRepository = categoryRepository;
     }
@@ -77,5 +79,14 @@ public class PriceService : IPriceService
             Prices = overallTimelineItems,
             Components = categorySummaries
         };
+    }
+
+    public async Task<IEnumerable<string>> GetAllowedTickers()
+    {
+        var currAllowed = _currPricesProvider.GetTickers();
+        var historical = _pricesProvider.GetTickers();
+        await Task.WhenAll(currAllowed, historical);
+
+        return currAllowed.Result.Where(c => historical.Result.Contains(c)).Select(c => c);
     }
 }
