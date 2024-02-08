@@ -58,6 +58,7 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IBrokerRepository, BrokerRepository>();
 builder.Services.AddScoped<IAssetService, AssetService>();
 builder.Services.AddScoped<IPriceService, PriceService>();
+builder.Services.AddScoped<ICurrentPriceProvider, CurrentPriceProvider>();
 builder.Services.AddScoped<IHistoricalPriceProvider, HistoricalPriceProvider>();
 builder.Services.AddScoped<IAssetClassificationsService, AssetClassificationsService>();
 builder.Services.AddHttpClient<IHistoricalPriceProvider, HistoricalPriceProvider>();

@@ -15,7 +15,7 @@ namespace AssetManager.Services
 
         public async Task<IEnumerable<string>> GetTickers()
         {
-            var baseUrl = "https://financialmodelingprep.com/api/v3/stock/list?apikey=aUV5EG7zNmn6kvp6qpi3qjnh5q0mgltO";
+            var baseUrl = "https://api.finnhub.io/api/v1/stock/symbol?exchange=US&token=ch1hvi9r01qn6tg76npgch1hvi9r01qn6tg76nq0";
 
             try
             {

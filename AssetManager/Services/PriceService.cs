@@ -83,10 +83,13 @@ public class PriceService : IPriceService
 
     public async Task<IEnumerable<string>> GetAllowedTickers()
     {
-        var currAllowed = _currPricesProvider.GetTickers();
-        var historical = _pricesProvider.GetTickers();
-        await Task.WhenAll(currAllowed, historical);
+        var currAllowedTask = _currPricesProvider.GetTickers();
+        var historicalTask = _pricesProvider.GetTickers();
+        await Task.WhenAll(currAllowedTask, historicalTask);
 
-        return currAllowed.Result.Where(c => historical.Result.Contains(c)).Select(c => c);
+        var currAllowed = await currAllowedTask;
+        var historical = await historicalTask;
+
+        return currAllowed.Intersect(historical);
     }
 }

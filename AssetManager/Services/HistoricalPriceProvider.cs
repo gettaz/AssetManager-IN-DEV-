@@ -74,9 +74,4 @@ public class HistoricalPriceProvider : IHistoricalPriceProvider
             return new List<string>();
         }
     }
-
-    IEnumerable<string> IPriceProvider.GetTickers()
-    {
-        throw new NotImplementedException();
-    }
 }

@@ -21,14 +21,16 @@ namespace AssetManager.Controllers
         private readonly ICategoryRepository _categoryRepository;
         private readonly IMapper _mapper;
         private readonly IAssetService _assetService;
+        private readonly IPriceService _priceService;
 
-        public AssetsController(ILogger<AssetsController> logger, IAssetRepository assetRepository, ICategoryRepository categoryRepository, IMapper mapper, IAssetService assetService)
+        public AssetsController(ILogger<AssetsController> logger, IAssetRepository assetRepository, ICategoryRepository categoryRepository, IMapper mapper, IAssetService assetService, IPriceService priceService)
         {
             _logger = logger;
             _assetRepository = assetRepository;
             _categoryRepository = categoryRepository;
             _mapper = mapper;
             _assetService = assetService;
+            _priceService = priceService;
         }
 
         [HttpGet("assets")]
@@ -82,9 +84,9 @@ namespace AssetManager.Controllers
             }
 
         }
+
         [HttpGet("assets/category")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<AssetDto>))]
-
         public IActionResult GetAssetsByCategory(int categoryId)
         {
 
@@ -282,7 +284,40 @@ namespace AssetManager.Controllers
 
             return Ok("Successfully removed");
         }
+        [HttpGet("assets/allowed")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<string>))]
+        public async Task<IActionResult> GetAllowedTickers()
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogInformation("ModelState is invalid.");
+                return BadRequest(ModelState);
+            }
 
+            var startTime = DateTime.UtcNow;
+            _logger.LogInformation($"Starting to fetch allowed tickers at {startTime}.");
+
+            var assets = await _priceService.GetAllowedTickers();
+
+            var fetchTime = DateTime.UtcNow;
+            _logger.LogInformation($"Finished fetching allowed tickers at {fetchTime}. Time taken: {fetchTime - startTime}.");
+
+            if (assets == null || !assets.Any())
+            {
+                _logger.LogInformation("No assets found.");
+                return NotFound();
+            }
+
+            var filterStartTime = DateTime.UtcNow;
+            _logger.LogInformation($"Starting to filter assets at {filterStartTime}.");
+
+            var filteredAssets = assets.ToList();
+
+            var filterEndTime = DateTime.UtcNow;
+            _logger.LogInformation($"Finished filtering assets at {filterEndTime}. Time taken: {filterEndTime - filterStartTime}.");
+
+            return Ok(filteredAssets);
+        }
         private string UserIdExtract()
         {
             var res1 = HttpContext.Items["UserId"];
@@ -290,4 +325,5 @@ namespace AssetManager.Controllers
             return res;
         }
     }
+
     }
