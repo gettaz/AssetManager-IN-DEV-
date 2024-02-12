@@ -63,6 +63,7 @@ builder.Services.AddScoped<IHistoricalPriceProvider, HistoricalPriceProvider>();
 builder.Services.AddScoped<IAssetClassificationsService, AssetClassificationsService>();
 builder.Services.AddHttpClient<IHistoricalPriceProvider, HistoricalPriceProvider>();
 builder.Services.AddScoped<ExceptionFilter>();
+builder.Services.AddMemoryCache();
 
 builder.Services.AddCors(options =>
     {

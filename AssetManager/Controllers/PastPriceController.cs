@@ -21,12 +21,22 @@ namespace AssetManager.Controllers
         }
 
         [HttpGet("historic")]
-        public async Task<ActionResult<TimelineSummaryDto>> GetPastPrices()
+        public async Task<ActionResult<TimelineSummaryDto>> GetPastPrices([FromQuery] string aggregationType)
         {
             
             try
             {
-                var timelineSummary = await _priceService.GetHistoricalCategoryPriceAsync(UserIdExtract());
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                TimelineSummaryDto timelineSummary = aggregationType switch
+                {
+                    "all" => await _priceService.GetHistoricalAllPriceAsync(UserIdExtract()),
+                    "broker" => await _priceService.GetHistoricalCategoryPriceAsync(UserIdExtract()),
+                    "category" => await _priceService.GetHistoricalBrokerPriceAsync(UserIdExtract()),
+                    _ => throw new ArgumentException("Invalid classification type")
+                };
+
                 if (timelineSummary == null || timelineSummary.Prices.Count() == 0)
                 {
                     return NotFound($"No past prices found for user {UserIdExtract()}.");

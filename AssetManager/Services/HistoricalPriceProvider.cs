@@ -1,18 +1,34 @@
 ﻿using AssetManager.DTO;
 using AssetManager.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 public class HistoricalPriceProvider : IHistoricalPriceProvider
 {
     private readonly HttpClient _client;
+    private readonly IMemoryCache _cache;
 
-    public HistoricalPriceProvider(HttpClient client)
+    public HistoricalPriceProvider(HttpClient client, IMemoryCache cache)
     {
         _client = client;
+        _cache = cache;
     }
 
     public async Task<IEnumerable<TimelineDataItem>> GetHistoricalPriceAsync(string symbol, string fromDate, string toDate)
+    {
+        if (!_cache.TryGetValue(symbol, out IEnumerable<TimelineDataItem> data))
+        {
+            data = await GetTimeLineFromApi(symbol, fromDate, toDate);
+            _cache.Set(symbol, data);
+            new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(TimeSpan.FromMinutes(1440));
+        }
+
+        return data; 
+    }
+
+    private async Task<IEnumerable<TimelineDataItem>> GetTimeLineFromApi(string symbol, string fromDate, string toDate)
     {
         var baseUrl = $"https://financialmodelingprep.com/api/v3/historical-price-full/{symbol}";
         var urlWithParams = $"{baseUrl}?from={fromDate}&to={toDate}&apikey=aUV5EG7zNmn6kvp6qpi3qjnh5q0mgltO";
@@ -27,6 +43,10 @@ public class HistoricalPriceProvider : IHistoricalPriceProvider
 
             var pricesArray = jsobjon["historical"];
 
+            if (pricesArray == null)
+            {
+                return prices;
+            }
             foreach (var item in pricesArray)
             {
                 prices.Add(new TimelineDataItem
@@ -45,6 +65,21 @@ public class HistoricalPriceProvider : IHistoricalPriceProvider
     }
 
     public async Task<IEnumerable<string>> GetTickers()
+    {
+        IEnumerable<string> data;
+
+        if (!_cache.TryGetValue("all", out data))
+        {
+            data = await GetTickersFromApi();
+            _cache.Set("all", data);
+            new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(TimeSpan.FromMinutes(1440));
+        }
+
+        return data;
+    }
+
+    private async Task<IEnumerable<string>> GetTickersFromApi()
     {
         var baseUrl = "https://financialmodelingprep.com/api/v3/stock/list?apikey=aUV5EG7zNmn6kvp6qpi3qjnh5q0mgltO";
 
