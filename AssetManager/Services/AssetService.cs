@@ -106,5 +106,21 @@ namespace AssetManager.Services
 
             return totalPrice / totalAmount;
         }
+
+        public IEnumerable<AssetDto> GetUserAssets(string userId, string category, string broker, string ticker)
+        {
+            var categoryId = _categoryRepository.GetCategoryId(userId, category);
+            var brokerId = _brokerRepository.GetBrokerId(userId, broker);
+
+            var assets = _assetRepository.GetAssetsDetails(userId, brokerId, categoryId, ticker);
+            var result = new List<AssetDto>();
+
+            foreach (var asset in assets)
+            {
+                result.Add(_mapper.Map<AssetDto>(asset));
+            }
+
+            return result;
+        }
     }
 }

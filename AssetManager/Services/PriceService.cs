@@ -1,6 +1,8 @@
 ﻿using AssetManager.DTO;
 using AssetManager.Interfaces;
 using AssetManager.Models;
+using System.Collections.Concurrent;
+using System.Web.WebPages;
 
 public class PriceService : IPriceService
 {
@@ -9,7 +11,6 @@ public class PriceService : IPriceService
     private readonly IAssetRepository _assetRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly IBrokerRepository _brokerRepository;
-
 
     public PriceService(IHistoricalPriceProvider pricesProvider, ICurrentPriceProvider currPricesProvider, IAssetRepository assetRepository, ICategoryRepository categoryRepository, IBrokerRepository brokerRepository)
     {
@@ -31,7 +32,6 @@ public class PriceService : IPriceService
     public async Task<TimelineSummaryDto> GetHistoricalCategoryPriceAsync(string userId)
     {
         var categories = _categoryRepository.GetUserCategories(userId);
-        var overallAggregatedPrices = new Dictionary<DateTime, double>();
         var categorySummaries = new List<TimelineSummaryDto>();
 
         foreach (var category in categories)
@@ -44,17 +44,14 @@ public class PriceService : IPriceService
                 var assetPrices = await GetHistoricalStockPriceAsync(asset.Ticker);
                 foreach (var priceItem in assetPrices)
                 {
-                    if (priceItem != null && !categoryAggregatedPrices.ContainsKey(priceItem.Date))
+                    if (asset.DateBought < priceItem.Date)
                     {
-                        categoryAggregatedPrices[priceItem.Date] = 0;
+                        if (!categoryAggregatedPrices.ContainsKey(priceItem.Date))
+                        {
+                            categoryAggregatedPrices[priceItem.Date] = 0;
+                        }
+                        categoryAggregatedPrices[priceItem!.Date] += (asset.PriceBought - priceItem.Price) * asset.Amount;
                     }
-                    categoryAggregatedPrices[priceItem!.Date] += priceItem.Price;
-
-                    if (priceItem != null && !overallAggregatedPrices.ContainsKey(priceItem.Date))
-                    {
-                        overallAggregatedPrices[priceItem.Date] = 0;
-                    }
-                    overallAggregatedPrices[priceItem!.Date] += priceItem.Price;
                 }
             }
 
@@ -71,16 +68,9 @@ public class PriceService : IPriceService
             });
         }
 
-        var overallTimelineItems = overallAggregatedPrices.Select(kvp => new TimelineDataItem
-        {
-            Date = kvp.Key,
-            Price = kvp.Value
-        }).ToList();
-
         return new TimelineSummaryDto
         {
             Name = "category",
-            Prices = overallTimelineItems,
             Components = categorySummaries
         };
     }
@@ -106,12 +96,6 @@ public class PriceService : IPriceService
                         brokerAggregatedPrices[priceItem.Date] = 0;
                     }
                     brokerAggregatedPrices[priceItem!.Date] += priceItem.Price;
-
-                    if (priceItem != null && !overallAggregatedPrices.ContainsKey(priceItem.Date))
-                    {
-                        overallAggregatedPrices[priceItem.Date] = 0;
-                    }
-                    overallAggregatedPrices[priceItem!.Date] += priceItem.Price;
                 }
             }
 
@@ -128,49 +112,49 @@ public class PriceService : IPriceService
             });
         }
 
-        var overallTimelineItems = overallAggregatedPrices.Select(kvp => new TimelineDataItem
-        {
-            Date = kvp.Key,
-            Price = kvp.Value
-        }).ToList();
-
         return new TimelineSummaryDto
         {
             Name = "broker",
-            Prices = overallTimelineItems,
             Components = brokerSummaries
         };
     }
 
     public async Task<TimelineSummaryDto> GetHistoricalAllPriceAsync(string userId)
     {
-        var overallAggregatedPrices = new Dictionary<DateTime, double>();
-        var assetSummaries = new List<TimelineSummaryDto>();
+        var overallAggregatedPrices = new ConcurrentDictionary<DateTime, double>();
+
+        for (var date = DateTime.Now.AddDays(-365).Date; date <= DateTime.Now.Date; date = date.AddDays(1))
+        {
+            overallAggregatedPrices.TryAdd(date.Date, 0);
+        }
+
         var assets = _assetRepository.GetUserAssets(userId);
 
-        foreach (var asset in assets)
+        var groupedAssets = assets.OrderBy(t => t.DateBought).GroupBy(ass => ass.Ticker);
+
+        var assetsPricesPerDate = new Dictionary<string, 
+                                        Dictionary<DateTime,
+                                            Tuple<double, double>>>();
+
+        foreach (var group in groupedAssets)
         {
-            var assetAggregatedPrices = new Dictionary<DateTime, double>();
-            var assetPrices = await GetHistoricalStockPriceAsync(asset.Ticker);
+            var yearAvgPrice = new Dictionary<DateTime, Tuple<double, double>>();
 
-            foreach (var priceItem in assetPrices)
+            for (int i = 0; i <= 365; ++i)
             {
-                if (priceItem != null && !assetAggregatedPrices.ContainsKey(priceItem.Date))
-                {
-                    assetAggregatedPrices[priceItem.Date] = 0;
-                }
-                assetAggregatedPrices[priceItem!.Date] += priceItem.Price;
+                var rel = group.Where(t => t.DateBought <= DateTime.Now.AddDays(-i));
+                var amountThatDay = rel.Select(r => r.Amount).Sum();
+                var avgPriceThatDay = amountThatDay == 0 ? 0 : rel.Select(r => r.Amount * r.PriceBought).Sum() / amountThatDay;
 
-                if (priceItem != null && !overallAggregatedPrices.ContainsKey(priceItem.Date))
-                {
-                    overallAggregatedPrices[priceItem.Date] = 0;
-                }
-                overallAggregatedPrices[priceItem!.Date] += priceItem.Price;
+                yearAvgPrice.Add(DateTime.Now.AddDays(-i).Date, new Tuple<double, double>(amountThatDay, avgPriceThatDay));
             }
 
-
+            assetsPricesPerDate.Add(group.Key, yearAvgPrice);
         }
-        var overallTimelineItems = overallAggregatedPrices.Select(kvp => new TimelineDataItem
+
+        await GetAssetsPricesAsync(overallAggregatedPrices, assetsPricesPerDate);
+
+        var overallTimelineItems = overallAggregatedPrices.OrderBy(x => x.Key).Select(kvp => new TimelineDataItem
         {
             Date = kvp.Key,
             Price = kvp.Value
@@ -179,9 +163,23 @@ public class PriceService : IPriceService
         return new TimelineSummaryDto
         {
             Name = "all",
-            Prices = overallTimelineItems,
-            Components = assetSummaries
+            Prices = overallTimelineItems
         };
+    }
+
+    private async Task GetAssetsPricesAsync(ConcurrentDictionary<DateTime, double> overallAggregatedPrices, Dictionary<string,                 Dictionary<DateTime,
+                                            Tuple<double, double>>> assets)
+    {
+        await Parallel.ForEachAsync(assets, async (asset, token) =>
+        {
+            var assetPrices = await GetHistoricalStockPriceAsync(asset.Key);
+
+            foreach (var priceItem in assetPrices)
+            {
+                overallAggregatedPrices[priceItem.Date.Date] += (priceItem.Price - 
+                    asset.Value[priceItem.Date.Date].Item2) * asset.Value[priceItem.Date.Date].Item1;
+            }
+        });
     }
 
     public async Task<IEnumerable<string>> GetAllowedTickers()

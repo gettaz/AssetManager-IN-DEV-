@@ -32,11 +32,17 @@ namespace AssetManager.Repository
             return Save();
         }
 
+        public int GetCategoryId(string userId, string? name)
+        {
+            return _context.Categories
+                .Where(c => c.UserId == userId && c.Name == name).First().Id;
+        }
+
         public IEnumerable<Category> GetUserCategories(string userId)
         {
         try{
                 return _context.Categories
-    .Where(c => c.UserId == userId).ToList();
+            .Where(c => c.UserId == userId).ToList();
             }
             catch (Exception ex)
             {

@@ -70,5 +70,12 @@ namespace AssetManager.Repository
             _context.Brokers.Update(broker);
             return Save();
         }
+
+        public int GetBrokerId(string userId, string? name)
+        {
+            return _context.Brokers
+                .Where(c => c.UserId == userId && c.Name == name).First().Id;
+        }
+
     }
 }

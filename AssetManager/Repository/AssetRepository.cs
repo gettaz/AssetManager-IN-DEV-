@@ -87,9 +87,25 @@ namespace AssetManager.Repository
             return Enumerable.Empty<Asset>();
         }
 
+        public IEnumerable<Asset> GetAssetsDetails(string userId, int broker, int category, string ticker)
+        {
+            var assetByCategory = _context.Assets.Where(ac => ac.Category.Id == category && ac.Category.UserId == userId).Select(ac => ac).AsEnumerable();
+
+            var assetByBrokerAndCategory = _context.Assets.Where(ac => ac.Category.Id == category &&
+            ac.Broker.Id == broker
+            && ac.Ticker == ticker).Select(ac => ac).AsEnumerable();
+
+            if (assetByBrokerAndCategory.Any())
+            {
+                return assetByBrokerAndCategory;
+            }
+            return Enumerable.Empty<Asset>();
+        }
+
         public IEnumerable<Asset> GetAssetsByCategory(string userId, int id)
         {
             var assetByCategory = _context.Assets.Where(ac => ac.Category.Id == id && ac.Category.UserId == userId).Select(ac => ac).AsEnumerable();
+            var assetByBrokerAndCategory = _context.Assets.Where(ac => ac.Category.Id == id && ac.Category.UserId == userId && ac.Broker.Id == 10).Select(ac => ac).AsEnumerable();
 
             if (assetByCategory.Any())
             {
@@ -97,6 +113,7 @@ namespace AssetManager.Repository
             }
             return Enumerable.Empty<Asset>();
         }
+
         private bool Save()
         {
             var saved = _context.SaveChanges();

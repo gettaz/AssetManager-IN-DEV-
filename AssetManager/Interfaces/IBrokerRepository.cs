@@ -11,6 +11,8 @@ namespace AssetManager.Interfaces
         bool CreateBroker(Broker broker);
         bool UpdateBroker(Broker broker);
         bool DeleteBroker(string userId, int brokerId);
+        int GetBrokerId(string userId, string? name);
+
         bool Save();
     }
 }

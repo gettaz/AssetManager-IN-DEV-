@@ -1,6 +1,7 @@
 ﻿namespace AssetManager.Interfaces
 {
-    public interface ICurrentPriceProvider : IPriceProvider
+    public interface ICurrentPriceProvider
     {
+        public Task<IEnumerable<string>> GetTickers();
     }
 }

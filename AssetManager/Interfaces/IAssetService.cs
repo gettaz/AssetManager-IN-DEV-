@@ -9,6 +9,7 @@ namespace AssetManager.Interfaces
 
         IEnumerable<AssetDto> GetUserAssets(string userId);
 
+        IEnumerable<AssetDto> GetUserAssets(string userId, string category, string broker, string ticker);
 
         bool CreateAsset(AssetDto assetDto, string userId);
 
